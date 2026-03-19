@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { ModelOption, ModelResponse, RunResult } from "@/lib/types";
 import { getDemoSession, incrementDemoRun, isDemoLimitReached, DEMO_RUN_LIMIT } from "@/lib/demo";
+import { createClient } from "@/lib/supabase/client";
 import Header from "@/components/shared/Header";
 import DemoBanner from "@/components/shared/DemoBanner";
 import KeyManager from "@/components/shared/KeyManager";
@@ -30,6 +31,9 @@ export default function PlaygroundClient({
   const [scores, setScores] = useState<Record<string, number | null>>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const demoSession = isDemo ? getDemoSession() : null;
   const runsUsed = demoSession?.runsUsed ?? 0;
@@ -55,6 +59,8 @@ export default function PlaygroundClient({
     setLoading(true);
     setResponses([]);
     setScores({});
+    setSaved(false);
+    setSaveError(null);
 
     if (isDemo) {
       incrementDemoRun();
@@ -84,6 +90,28 @@ export default function PlaygroundClient({
       setError("Network error. Please try again.");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleSave() {
+    setSaving(true);
+    setSaveError(null);
+    const responsesWithScores = responses.map((r) => ({
+      ...r,
+      score: scores[r.model] ?? null,
+    }));
+    const supabase = createClient();
+    const { error: dbError } = await supabase.from("runs").insert({
+      system_prompt: systemPrompt,
+      user_message: userMessage,
+      models: selectedModels,
+      responses: responsesWithScores,
+    });
+    setSaving(false);
+    if (dbError) {
+      setSaveError(dbError.message);
+    } else {
+      setSaved(true);
     }
   }
 
@@ -147,21 +175,37 @@ export default function PlaygroundClient({
             )}
 
             {responses.length > 0 && (
-              <div
-                className={`grid gap-4 ${
-                  responses.length === 1 ? "grid-cols-1" : "grid-cols-1 sm:grid-cols-2"
-                }`}
-              >
-                {responses.map((r) => (
-                  <ResponseCard
-                    key={r.model}
-                    response={r}
-                    modelName={modelMap[r.model] ?? r.model}
-                    score={scores[r.model] ?? null}
-                    onScore={(s) => setScores((prev) => ({ ...prev, [r.model]: s }))}
-                    isDemo={isDemo}
-                  />
-                ))}
+              <div className="space-y-4">
+                {!isDemo && (
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={handleSave}
+                      disabled={saving || saved}
+                      className="bg-green-600 text-white py-1.5 px-4 rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      {saving ? "Saving…" : saved ? "Saved!" : "Save Run"}
+                    </button>
+                    {saveError && (
+                      <p className="text-sm text-red-600">{saveError}</p>
+                    )}
+                  </div>
+                )}
+                <div
+                  className={`grid gap-4 ${
+                    responses.length === 1 ? "grid-cols-1" : "grid-cols-1 sm:grid-cols-2"
+                  }`}
+                >
+                  {responses.map((r) => (
+                    <ResponseCard
+                      key={r.model}
+                      response={r}
+                      modelName={modelMap[r.model] ?? r.model}
+                      score={scores[r.model] ?? null}
+                      onScore={(s) => setScores((prev) => ({ ...prev, [r.model]: s }))}
+                      isDemo={isDemo}
+                    />
+                  ))}
+                </div>
               </div>
             )}
           </div>
