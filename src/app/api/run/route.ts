@@ -105,10 +105,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { data: apiKeys } = await supabase
+  const { data: apiKeys, error: apiKeysError } = await supabase
     .from("api_keys")
     .select("provider, encrypted_key")
     .eq("user_id", user.id);
+  if (apiKeysError) {
+    console.error("Failed to fetch API keys for user", user.id, apiKeysError);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
 
   const keyMap: Record<string, string> = {};
   for (const k of apiKeys ?? []) {
