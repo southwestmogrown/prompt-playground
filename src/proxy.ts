@@ -34,7 +34,12 @@ export async function proxy(request: NextRequest) {
   const isProtected =
     pathname.startsWith("/playground") || pathname.startsWith("/history");
 
-  if (!user && isProtected) {
+  // Allow unauthenticated access to the playground in demo mode
+  const isDemoPlayground =
+    pathname.startsWith("/playground") &&
+    request.nextUrl.searchParams.get("demo") === "true";
+
+  if (!user && isProtected && !isDemoPlayground) {
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.pathname = "/login";
     return NextResponse.redirect(redirectUrl);

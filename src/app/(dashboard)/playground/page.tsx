@@ -1,8 +1,32 @@
-export default function PlaygroundPage() {
+import { createClient } from "@/lib/supabase/server";
+import { SUPPORTED_MODELS, DEMO_MODELS } from "@/lib/models";
+import PlaygroundClient from "./PlaygroundClient";
+
+interface PageProps {
+  searchParams: Promise<{ demo?: string }>;
+}
+
+export default async function PlaygroundPage({ searchParams }: PageProps) {
+  const params = await searchParams;
+  const isDemo = params.demo === "true";
+
+  let userEmail: string | null = null;
+
+  if (!isDemo) {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    userEmail = user?.email ?? null;
+  }
+
+  const models = isDemo ? DEMO_MODELS : SUPPORTED_MODELS;
+
   return (
-    <main className="min-h-screen p-8">
-      <h1 className="text-2xl font-bold">Playground</h1>
-      <p className="text-gray-500 mt-2">Coming in M2.</p>
-    </main>
+    <PlaygroundClient
+      models={models}
+      isDemo={isDemo}
+      userEmail={userEmail}
+    />
   );
 }
