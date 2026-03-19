@@ -6,7 +6,10 @@ import { callOpenAI } from "@/lib/providers/openai";
 import { SUPPORTED_MODELS, DEMO_MODELS } from "@/lib/models";
 import type { RunRequest, ModelResponse } from "@/lib/types";
 
-const DEMO_RUN_LIMIT = Number(process.env.DEMO_RUN_LIMIT ?? 3);
+const rawDemoRunLimit = process.env.DEMO_RUN_LIMIT;
+const parsedDemoRunLimit = rawDemoRunLimit ? parseInt(rawDemoRunLimit, 10) : NaN;
+const DEMO_RUN_LIMIT =
+  Number.isNaN(parsedDemoRunLimit) || parsedDemoRunLimit <= 0 ? 3 : parsedDemoRunLimit;
 
 // In-memory per-IP demo rate limiting (resets on server restart)
 const demoIpCounts = new Map<string, number>();
