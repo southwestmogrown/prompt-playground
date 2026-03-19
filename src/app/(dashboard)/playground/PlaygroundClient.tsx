@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { ModelOption, ModelResponse, RunResult } from "@/lib/types";
-import { getDemoSession, incrementDemoRun, isDemoLimitReached, DEMO_RUN_LIMIT } from "@/lib/demo";
+import { getDemoSession, incrementDemoRun } from "@/lib/demo";
 import { createClient } from "@/lib/supabase/client";
 import Header from "@/components/shared/Header";
 import DemoBanner from "@/components/shared/DemoBanner";
@@ -15,12 +15,14 @@ interface PlaygroundClientProps {
   models: ModelOption[];
   isDemo: boolean;
   userEmail?: string | null;
+  demoRunLimit: number;
 }
 
 export default function PlaygroundClient({
   models,
   isDemo,
   userEmail,
+  demoRunLimit,
 }: PlaygroundClientProps) {
   const [systemPrompt, setSystemPrompt] = useState("");
   const [userMessage, setUserMessage] = useState("");
@@ -37,7 +39,7 @@ export default function PlaygroundClient({
 
   const demoSession = isDemo ? getDemoSession() : null;
   const runsUsed = demoSession?.runsUsed ?? 0;
-  const limitReached = isDemo && isDemoLimitReached();
+  const limitReached = isDemo && runsUsed >= demoRunLimit;
 
   const modelMap = Object.fromEntries(models.map((m) => [m.id, m.name]));
 
@@ -62,10 +64,6 @@ export default function PlaygroundClient({
     setSaved(false);
     setSaveError(null);
 
-    if (isDemo) {
-      incrementDemoRun();
-    }
-
     try {
       const res = await fetch("/api/run", {
         method: "POST",
@@ -83,6 +81,12 @@ export default function PlaygroundClient({
       if (!res.ok) {
         setError(data.error ?? "Run failed");
         return;
+      }
+
+      // Increment only after a confirmed successful response so a network error
+      // or server misconfiguration doesn't silently consume a demo run.
+      if (isDemo) {
+        incrementDemoRun();
       }
 
       setResponses(data.responses);
@@ -120,7 +124,7 @@ export default function PlaygroundClient({
       <Header userEmail={userEmail} isDemo={isDemo} />
 
       {isDemo && (
-        <DemoBanner runsUsed={runsUsed} runLimit={DEMO_RUN_LIMIT} />
+        <DemoBanner runsUsed={runsUsed} runLimit={demoRunLimit} />
       )}
 
       <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">

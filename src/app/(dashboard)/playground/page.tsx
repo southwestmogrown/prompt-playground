@@ -9,6 +9,12 @@ interface PageProps {
 export default async function PlaygroundPage({ searchParams }: PageProps) {
   const isDemo = searchParams.demo === "true";
 
+  // Read the limit server-side so the client always uses the same value the
+  // server enforces, regardless of whether DEMO_RUN_LIMIT is NEXT_PUBLIC_.
+  const rawLimit = process.env.DEMO_RUN_LIMIT;
+  const parsed = rawLimit ? parseInt(rawLimit, 10) : NaN;
+  const demoRunLimit = Number.isNaN(parsed) || parsed <= 0 ? 3 : parsed;
+
   let userEmail: string | null = null;
   if (!isDemo) {
     const supabase = await createClient();
@@ -25,6 +31,7 @@ export default async function PlaygroundPage({ searchParams }: PageProps) {
       models={models}
       isDemo={isDemo}
       userEmail={userEmail}
+      demoRunLimit={demoRunLimit}
     />
   );
 }

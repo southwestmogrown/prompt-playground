@@ -11,7 +11,7 @@ export default async function HistoryPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { data: runs } = await supabase
+  const { data: runs, error: runsError } = await supabase
     .from("runs")
     .select("*")
     .eq("user_id", user.id)
@@ -22,7 +22,13 @@ export default async function HistoryPage() {
       <Header userEmail={user.email} />
       <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6">
         <h1 className="text-xl font-bold text-gray-900 mb-6">History</h1>
-        <RunList runs={(runs ?? []) as Run[]} />
+        {runsError ? (
+          <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded px-4 py-3">
+            Failed to load history: {runsError.message}
+          </p>
+        ) : (
+          <RunList runs={(runs ?? []) as Run[]} />
+        )}
       </main>
     </div>
   );
