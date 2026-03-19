@@ -24,10 +24,36 @@ export default function KeyManager() {
   const [success, setSuccess] = useState<string | null>(null);
 
   const fetchKeys = useCallback(async () => {
-    const res = await fetch("/api/keys");
-    if (res.ok) {
+    try {
+      const res = await fetch("/api/keys");
+      if (!res.ok) {
+        setKeys([]);
+
+        // Try to extract a useful error message from the response, if available.
+        let message = "Failed to load API keys";
+        try {
+          const data = await res.json();
+          if (data && typeof data.error === "string") {
+            message = data.error;
+          }
+        } catch {
+          // Ignore JSON parse errors and fall back to the generic message.
+        }
+
+        if (res.status === 401) {
+          message = "Your session has expired. Please sign in again to view your API keys.";
+        }
+
+        setError(message);
+        return;
+      }
+
       const data = await res.json();
       setKeys(data.keys ?? []);
+      setError(null);
+    } catch {
+      setKeys([]);
+      setError("Unable to connect to the server. Please try again.");
     }
   }, []);
 
