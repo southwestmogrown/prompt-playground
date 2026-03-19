@@ -30,12 +30,13 @@ export async function GET() {
   } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("api_keys")
     .select("id, provider, key_hint, created_at")
     .eq("user_id", user.id)
     .order("created_at", { ascending: true });
 
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ keys: data ?? [] });
 }
 
