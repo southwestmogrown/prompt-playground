@@ -2,8 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { createClient } from "@/lib/supabase/server";
 
+const ENCRYPTION_SECRET = process.env.ENCRYPTION_SECRET;
+
+if (!ENCRYPTION_SECRET) {
+  throw new Error("ENCRYPTION_SECRET environment variable is not set");
+}
+
+const ENCRYPTION_KEY: Buffer = crypto.scryptSync(ENCRYPTION_SECRET, "salt", 32);
+
 function getEncryptionKey(): Buffer {
-  return crypto.scryptSync(process.env.ENCRYPTION_SECRET!, "salt", 32);
+  return ENCRYPTION_KEY;
 }
 
 function encryptApiKey(plaintext: string): string {
