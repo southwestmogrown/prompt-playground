@@ -1,13 +1,19 @@
+import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { SUPPORTED_MODELS, DEMO_MODELS } from "@/lib/models";
 import PlaygroundClient from "./PlaygroundClient";
 
+export const metadata: Metadata = {
+  title: "Playground — Prompt Playground",
+};
+
 interface PageProps {
-  searchParams: { demo?: string };
+  searchParams: Promise<{ demo?: string }>;
 }
 
 export default async function PlaygroundPage({ searchParams }: PageProps) {
-  const isDemo = searchParams.demo === "true";
+  const params = await searchParams;
+  const isDemo = params.demo === "true";
 
   // Read the limit server-side so the client always uses the same value the
   // server enforces, regardless of whether DEMO_RUN_LIMIT is NEXT_PUBLIC_.

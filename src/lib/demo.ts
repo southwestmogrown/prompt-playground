@@ -31,3 +31,23 @@ export function isDemoLimitReached(): boolean {
   if (!session) return false;
   return session.runsUsed >= DEMO_RUN_LIMIT;
 }
+
+export function saveDraft(systemPrompt: string, userMessage: string) {
+  if (typeof window === "undefined") return;
+  sessionStorage.setItem("playground_draft", JSON.stringify({ systemPrompt, userMessage }));
+}
+
+export function getDraft(): { systemPrompt: string; userMessage: string } | null {
+  if (typeof window === "undefined") return null;
+  const raw = sessionStorage.getItem("playground_draft");
+  try {
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+export function clearDraft() {
+  if (typeof window === "undefined") return;
+  sessionStorage.removeItem("playground_draft");
+}

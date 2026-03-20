@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import type { ProviderName } from "@/lib/types";
 
 interface StoredKey {
@@ -22,44 +22,39 @@ export default function KeyManager() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-
-  const fetchKeys = useCallback(async () => {
-    try {
-      const res = await fetch("/api/keys");
-      if (!res.ok) {
-        setKeys([]);
-
-        // Try to extract a useful error message from the response, if available.
-        let message = "Failed to load API keys";
-        try {
-          const data = await res.json();
-          if (data && typeof data.error === "string") {
-            message = data.error;
-          }
-        } catch {
-          // Ignore JSON parse errors and fall back to the generic message.
-        }
-
-        if (res.status === 401) {
-          message = "Your session has expired. Please sign in again to view your API keys.";
-        }
-
-        setError(message);
-        return;
-      }
-
-      const data = await res.json();
-      setKeys(data.keys ?? []);
-      setError(null);
-    } catch {
-      setKeys([]);
-      setError("Unable to connect to the server. Please try again.");
-    }
-  }, []);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
-    fetchKeys();
-  }, [fetchKeys]);
+    let active = true;
+    async function load() {
+      try {
+        const res = await fetch("/api/keys");
+        if (!active) return;
+        if (!res.ok) {
+          let message = "Failed to load API keys";
+          try {
+            const data = await res.json();
+            if (data && typeof data.error === "string") message = data.error;
+          } catch { /* ignore */ }
+          if (res.status === 401) {
+            message = "Your session has expired. Please sign in again to view your API keys.";
+          }
+          setKeys([]);
+          setError(message);
+          return;
+        }
+        const data = await res.json();
+        setKeys(data.keys ?? []);
+        setError(null);
+      } catch {
+        if (!active) return;
+        setKeys([]);
+        setError("Unable to connect to the server. Please try again.");
+      }
+    }
+    load();
+    return () => { active = false; };
+  }, [refreshKey]);
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
@@ -82,7 +77,7 @@ export default function KeyManager() {
 
     setApiKey("");
     setSuccess(`${PROVIDER_LABELS[provider]} key saved (…${data.key_hint})`);
-    fetchKeys();
+    setRefreshKey((k) => k + 1);
   }
 
   async function handleDelete(id: string) {
@@ -92,7 +87,7 @@ export default function KeyManager() {
       body: JSON.stringify({ id }),
     });
     if (res.ok) {
-      fetchKeys();
+      setRefreshKey((k) => k + 1);
     } else {
       setError("Failed to remove key. Please try again.");
     }

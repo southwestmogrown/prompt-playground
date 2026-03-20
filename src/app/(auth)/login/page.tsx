@@ -1,6 +1,11 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import LoginForm from "@/components/auth/LoginForm";
+
+export const metadata: Metadata = {
+  title: "Sign In — Prompt Playground",
+};
 
 export default async function LoginPage() {
   const supabase = await createClient();
