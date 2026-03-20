@@ -51,6 +51,9 @@ export async function POST(request: NextRequest) {
   if (!provider || !apiKey) {
     return NextResponse.json({ error: "Missing fields" }, { status: 400 });
   }
+  if (!["anthropic", "openai"].includes(provider)) {
+    return NextResponse.json({ error: "Invalid provider" }, { status: 400 });
+  }
 
   const encrypted_key = encryptApiKey(apiKey);
   const key_hint = apiKey.slice(-4);

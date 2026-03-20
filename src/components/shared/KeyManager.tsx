@@ -86,7 +86,11 @@ export default function KeyManager() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id }),
     });
-    if (res.ok) setRefreshKey((k) => k + 1);
+    if (res.ok) {
+      setRefreshKey((k) => k + 1);
+    } else {
+      setError("Failed to remove key. Please try again.");
+    }
   }
 
   return (
