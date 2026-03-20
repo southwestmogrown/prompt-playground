@@ -1,5 +1,10 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+
+export const metadata: Metadata = {
+  title: "History — Prompt Playground",
+};
 import Header from "@/components/shared/Header";
 import RunList from "@/components/history/RunList";
 import type { Run } from "@/lib/types";

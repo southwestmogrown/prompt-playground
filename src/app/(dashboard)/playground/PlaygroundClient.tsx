@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import type { ModelOption, ModelResponse, RunResult } from "@/lib/types";
-import { getDemoSession, incrementDemoRun, isDemoLimitReached, DEMO_RUN_LIMIT } from "@/lib/demo";
+import { getDemoSession, incrementDemoRun, isDemoLimitReached, saveDraft, getDraft, clearDraft } from "@/lib/demo";
 import { createClient } from "@/lib/supabase/client";
 import Header from "@/components/shared/Header";
 import DemoBanner from "@/components/shared/DemoBanner";
@@ -15,13 +16,16 @@ interface PlaygroundClientProps {
   models: ModelOption[];
   isDemo: boolean;
   userEmail?: string | null;
+  demoRunLimit?: number;
 }
 
 export default function PlaygroundClient({
   models,
   isDemo,
   userEmail,
+  demoRunLimit = 3,
 }: PlaygroundClientProps) {
+  const router = useRouter();
   const [systemPrompt, setSystemPrompt] = useState("");
   const [userMessage, setUserMessage] = useState("");
   const [selectedModels, setSelectedModels] = useState<string[]>(
@@ -35,11 +39,28 @@ export default function PlaygroundClient({
   const [saved, setSaved] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
+  // Restore draft prompt saved before navigating to sign up
+  useEffect(() => {
+    if (!isDemo) {
+      const draft = getDraft();
+      if (draft) {
+        setSystemPrompt(draft.systemPrompt);
+        setUserMessage(draft.userMessage);
+        clearDraft();
+      }
+    }
+  }, [isDemo]);
+
   const demoSession = isDemo ? getDemoSession() : null;
   const runsUsed = demoSession?.runsUsed ?? 0;
   const limitReached = isDemo && isDemoLimitReached();
 
   const modelMap = Object.fromEntries(models.map((m) => [m.id, m.name]));
+
+  function handleSignUp() {
+    saveDraft(systemPrompt, userMessage);
+    router.push("/signup");
+  }
 
   async function handleRun() {
     if (!userMessage.trim()) {
@@ -62,10 +83,6 @@ export default function PlaygroundClient({
     setSaved(false);
     setSaveError(null);
 
-    if (isDemo) {
-      incrementDemoRun();
-    }
-
     try {
       const res = await fetch("/api/run", {
         method: "POST",
@@ -83,6 +100,11 @@ export default function PlaygroundClient({
       if (!res.ok) {
         setError(data.error ?? "Run failed");
         return;
+      }
+
+      // Increment only after a successful run
+      if (isDemo) {
+        incrementDemoRun();
       }
 
       setResponses(data.responses);
@@ -120,7 +142,12 @@ export default function PlaygroundClient({
       <Header userEmail={userEmail} isDemo={isDemo} />
 
       {isDemo && (
-        <DemoBanner runsUsed={runsUsed} runLimit={DEMO_RUN_LIMIT} />
+        <DemoBanner
+          runsUsed={runsUsed}
+          runLimit={demoRunLimit}
+          limitReached={limitReached}
+          onSignUp={handleSignUp}
+        />
       )}
 
       <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
