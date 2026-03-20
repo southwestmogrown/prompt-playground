@@ -62,34 +62,50 @@ export default function KeyManager() {
     setSuccess(null);
     setSaving(true);
 
-    const res = await fetch("/api/keys", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ provider, apiKey }),
-    });
-    const data = await res.json();
-    setSaving(false);
+    try {
+      const res = await fetch("/api/keys", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider, apiKey }),
+      });
+      const data = await res.json();
 
-    if (!res.ok) {
-      setError(data.error ?? "Failed to save key");
-      return;
+      if (!res.ok) {
+        setError(data.error ?? "Failed to save key");
+        return;
+      }
+
+      setApiKey("");
+      setSuccess(`${PROVIDER_LABELS[provider]} key saved (…${data.key_hint})`);
+      setRefreshKey((k) => k + 1);
+    } catch {
+      setError("Network error. Please try again.");
+    } finally {
+      setSaving(false);
     }
-
-    setApiKey("");
-    setSuccess(`${PROVIDER_LABELS[provider]} key saved (…${data.key_hint})`);
-    setRefreshKey((k) => k + 1);
   }
 
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
   async function handleDelete(id: string) {
-    const res = await fetch("/api/keys", {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id }),
-    });
-    if (res.ok) {
-      setRefreshKey((k) => k + 1);
-    } else {
-      setError("Failed to remove key. Please try again.");
+    setError(null);
+    setSuccess(null);
+    setDeletingId(id);
+    try {
+      const res = await fetch("/api/keys", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
+      if (res.ok) {
+        setRefreshKey((k) => k + 1);
+      } else {
+        setError("Failed to remove key. Please try again.");
+      }
+    } catch {
+      setError("Network error. Please try again.");
+    } finally {
+      setDeletingId(null);
     }
   }
 
@@ -107,9 +123,10 @@ export default function KeyManager() {
               </span>
               <button
                 onClick={() => handleDelete(k.id)}
-                className="text-red-500 hover:text-red-700 text-xs"
+                disabled={deletingId === k.id}
+                className="text-red-500 hover:text-red-700 text-xs disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Remove
+                {deletingId === k.id ? "Removing…" : "Remove"}
               </button>
             </li>
           ))}

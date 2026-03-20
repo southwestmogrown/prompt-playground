@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import Header from "@/components/shared/Header";
+import RunList from "@/components/history/RunList";
+import type { Run } from "@/lib/types";
 
 export const metadata: Metadata = {
   title: "History — Prompt Playground",
 };
-import Header from "@/components/shared/Header";
-import RunList from "@/components/history/RunList";
-import type { Run } from "@/lib/types";
 
 export default async function HistoryPage() {
   const supabase = await createClient();
@@ -18,9 +18,10 @@ export default async function HistoryPage() {
 
   const { data: runs, error: runsError } = await supabase
     .from("runs")
-    .select("*")
+    .select("id, created_at, models, system_prompt, user_message, responses")
     .eq("user_id", user.id)
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .limit(50);
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">

@@ -43,7 +43,7 @@ export default function PlaygroundClient({
   useEffect(() => {
     if (!isDemo) {
       const draft = getDraft();
-      if (draft) {
+      if (draft && (draft.systemPrompt || draft.userMessage)) {
         setSystemPrompt(draft.systemPrompt);
         setUserMessage(draft.userMessage);
         clearDraft();
@@ -51,14 +51,17 @@ export default function PlaygroundClient({
     }
   }, [isDemo]);
 
-  const demoSession = isDemo ? getDemoSession() : null;
-  const runsUsed = demoSession?.runsUsed ?? 0;
+  const [runsUsed, setRunsUsed] = useState<number>(
+    () => (isDemo ? getDemoSession()?.runsUsed ?? 0 : 0)
+  );
   const limitReached = isDemo && runsUsed >= demoRunLimit;
 
   const modelMap = Object.fromEntries(models.map((m) => [m.id, m.name]));
 
   function handleSignUp() {
-    saveDraft(systemPrompt, userMessage);
+    if (systemPrompt || userMessage) {
+      saveDraft(systemPrompt, userMessage);
+    }
     router.push("/signup");
   }
 
@@ -105,7 +108,8 @@ export default function PlaygroundClient({
       // Increment only after a confirmed successful response so a network error
       // or server misconfiguration doesn't silently consume a demo run.
       if (isDemo) {
-        incrementDemoRun();
+        const updated = incrementDemoRun();
+        setRunsUsed(updated.runsUsed);
       }
 
       setResponses(data.responses);
@@ -119,22 +123,27 @@ export default function PlaygroundClient({
   async function handleSave() {
     setSaving(true);
     setSaveError(null);
-    const responsesWithScores = responses.map((r) => ({
-      ...r,
-      score: scores[r.model] ?? null,
-    }));
-    const supabase = createClient();
-    const { error: dbError } = await supabase.from("runs").insert({
-      system_prompt: systemPrompt,
-      user_message: userMessage,
-      models: selectedModels,
-      responses: responsesWithScores,
-    });
-    setSaving(false);
-    if (dbError) {
-      setSaveError(dbError.message);
-    } else {
-      setSaved(true);
+    try {
+      const responsesWithScores = responses.map((r) => ({
+        ...r,
+        score: scores[r.model] ?? null,
+      }));
+      const supabase = createClient();
+      const { error: dbError } = await supabase.from("runs").insert({
+        system_prompt: systemPrompt,
+        user_message: userMessage,
+        models: selectedModels,
+        responses: responsesWithScores,
+      });
+      if (dbError) {
+        setSaveError(dbError.message);
+      } else {
+        setSaved(true);
+      }
+    } catch {
+      setSaveError("Network error. Please try again.");
+    } finally {
+      setSaving(false);
     }
   }
 
