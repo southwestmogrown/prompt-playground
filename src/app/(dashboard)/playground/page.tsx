@@ -21,21 +21,21 @@ export default async function PlaygroundPage({ searchParams }: PageProps) {
   const parsed = rawLimit ? parseInt(rawLimit, 10) : NaN;
   const demoRunLimit = Number.isNaN(parsed) || parsed <= 0 ? 3 : parsed;
 
-  let userEmail: string | null = null;
-  if (!isDemo) {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    userEmail = user?.email ?? null;
-  }
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const userEmail = user?.email ?? null;
 
-  const models = isDemo ? DEMO_MODELS : SUPPORTED_MODELS;
+  // If an authenticated user lands on ?demo=true, treat them as authenticated
+  // so they get full model access and can save runs.
+  const effectiveDemo = isDemo && !user;
+  const models = effectiveDemo ? DEMO_MODELS : SUPPORTED_MODELS;
 
   return (
     <PlaygroundClient
       models={models}
-      isDemo={isDemo}
+      isDemo={effectiveDemo}
       userEmail={userEmail}
       demoRunLimit={demoRunLimit}
     />
