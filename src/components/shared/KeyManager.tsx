@@ -91,7 +91,11 @@ export default function KeyManager() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id }),
     });
-    if (res.ok) fetchKeys();
+    if (res.ok) {
+      fetchKeys();
+    } else {
+      setError("Failed to remove key. Please try again.");
+    }
   }
 
   return (

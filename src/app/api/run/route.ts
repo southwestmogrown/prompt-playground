@@ -14,16 +14,23 @@ const DEMO_RUN_LIMIT =
 // In-memory per-IP demo rate limiting (resets on server restart)
 const demoIpCounts = new Map<string, number>();
 
-function getEncryptionKey(): Buffer {
-  return crypto.scryptSync(process.env.ENCRYPTION_SECRET!, "salt", 32);
+// Derive and cache the encryption key once at module load — scrypt is intentionally
+// slow and must not be called on every request.
+const ENCRYPTION_SECRET = process.env.ENCRYPTION_SECRET;
+if (!ENCRYPTION_SECRET) {
+  throw new Error("ENCRYPTION_SECRET environment variable is not set");
 }
+const ENCRYPTION_KEY: Buffer = crypto.scryptSync(ENCRYPTION_SECRET, "salt", 32);
 
 function decryptApiKey(encrypted: string): string {
-  const [ivHex, authTagHex, encryptedHex] = encrypted.split(":");
-  const key = getEncryptionKey();
+  const parts = encrypted.split(":");
+  if (parts.length !== 3) {
+    throw new Error("Invalid encrypted key format");
+  }
+  const [ivHex, authTagHex, encryptedHex] = parts;
   const decipher = crypto.createDecipheriv(
     "aes-256-gcm",
-    key,
+    ENCRYPTION_KEY,
     Buffer.from(ivHex, "hex")
   );
   decipher.setAuthTag(Buffer.from(authTagHex, "hex"));
@@ -68,6 +75,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
   }
 
+  // Deduplicate model IDs to prevent duplicate responses and React key collisions.
+  const uniqueModels = [...new Set(models)];
+
   if (isDemo) {
     const ip =
       request.headers.get("x-forwarded-for")?.split(",")[0].trim() ?? "unknown";
@@ -82,7 +92,7 @@ export async function POST(request: NextRequest) {
     }
 
     const allowedIds = new Set(DEMO_MODELS.map((m) => m.id));
-    const validModels = models.filter((m) => allowedIds.has(m));
+    const validModels = uniqueModels.filter((m) => allowedIds.has(m));
     if (!validModels.length) {
       return NextResponse.json({ error: "No valid demo models selected" }, { status: 400 });
     }
@@ -118,13 +128,14 @@ export async function POST(request: NextRequest) {
   for (const k of apiKeys ?? []) {
     try {
       keyMap[k.provider] = decryptApiKey(k.encrypted_key);
-    } catch {
-      // skip invalid keys
+    } catch (err) {
+      // Log corrupt keys so they're distinguishable from simply missing keys.
+      console.warn("Failed to decrypt key for provider", k.provider, err instanceof Error ? err.message : err);
     }
   }
 
   const responses = await Promise.all(
-    models.map((modelId) => {
+    uniqueModels.map((modelId) => {
       const model = SUPPORTED_MODELS.find((m) => m.id === modelId);
       if (!model) {
         return Promise.resolve<ModelResponse>({

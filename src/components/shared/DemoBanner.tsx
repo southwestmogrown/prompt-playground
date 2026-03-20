@@ -6,7 +6,7 @@ interface DemoBannerProps {
 }
 
 export default function DemoBanner({ runsUsed, runLimit }: DemoBannerProps) {
-  const remaining = runLimit - runsUsed;
+  const remaining = Math.max(0, runLimit - runsUsed);
 
   return (
     <div className="bg-blue-50 border-b border-blue-200 px-4 py-2">
