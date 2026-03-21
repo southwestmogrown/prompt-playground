@@ -1,4 +1,4 @@
-# Prompt Playground
+# Prism
 
 > Run any prompt against multiple AI models at once, compare responses side by side, and save the runs that matter.
 
@@ -105,6 +105,22 @@ npm run dev      # Start dev server on localhost:3000
 npm run build    # Production build
 npm run lint     # ESLint
 ```
+
+---
+
+## Future Features
+
+Features planned but not yet built, in rough priority order.
+
+**Diff view** — When two responses are selected, highlight what's meaningfully different between them. Useful for comparing subtle prompt variations where the responses look similar at a glance but diverge in specific ways.
+
+**Re-run from history** — An "Open in Playground" button on any history card that pre-fills the prompt editor and model selection from that run. Closes the loop between reviewing past results and iterating on them.
+
+**Token count and cost estimate** — Show an estimated token count and API cost per model run next to the latency figure. Computed from model pricing tables on the server — no external calls needed. Useful for teams with budget constraints or anyone optimizing for cost vs. quality.
+
+**Prompt versioning** — Track how a prompt evolves across runs. If the same system prompt appears in multiple saves, group them and show a quality trend (average score over time). Makes it easier to see whether prompt changes are actually improving output.
+
+**Team workspaces** — Multiple users under a shared workspace with a unified history and shared templates. The natural next step if this moves from individual use to a team tool.
 
 ---
 

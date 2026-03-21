@@ -1,3 +1,92 @@
+# Devlog — March 20, 2026: Production Bug Fixes + Prism Rebrand
+
+## Summary
+
+Three production bugs fixed post-deploy, then a full visual rebrand from "Prompt Playground" to **Prism**. All pushed directly to main and deployed via Vercel.
+
+---
+
+## Bug Fixes (Production)
+
+### Bug 1 — `api_keys` upsert failing: missing unique constraint
+
+**Error:** `there is no unique or exclusion constraint matching the ON CONFLICT specification`
+
+The `/api/keys` POST route uses `.upsert()` with `onConflict: "user_id,provider"`, which requires a `UNIQUE(user_id, provider)` constraint in Postgres. The constraint was never created. Fixed by running the migration in Supabase SQL editor:
+
+```sql
+ALTER TABLE public.api_keys
+  ADD CONSTRAINT api_keys_user_id_provider_key UNIQUE (user_id, provider);
+```
+
+### Bug 2 — API key save failing: foreign key violation
+
+**Error:** `insert or update on table "api_keys" violates foreign key constraint "api_keys_user_id_fkey"`
+
+The `api_keys` table FK references `profiles.id`, but the `profiles` row didn't exist for the user. Root cause: the trigger that auto-creates a profile row on signup wasn't set up in Supabase. Fixed by backfilling existing users and creating the trigger:
+
+```sql
+INSERT INTO profiles (id)
+SELECT id FROM auth.users WHERE id NOT IN (SELECT id FROM profiles);
+```
+
+Also identified a broader RLS policy bug: all three tables (`profiles`, `api_keys`, `runs`) were using `FOR ALL USING (...)` policies, which don't apply `WITH CHECK` to writes. Split all policies into explicit `SELECT`, `INSERT`, `UPDATE`, `DELETE` policies with proper `WITH CHECK` clauses.
+
+### Bug 3 — Run save failing: RLS violation
+
+**Error:** `new row violates row-level security policy for table "runs"`
+
+Two compounding issues: (1) the RLS `INSERT` policy lacked `WITH CHECK` (fixed above), and (2) `PlaygroundClient.handleSave` was inserting into `runs` without passing `user_id`. Postgres inserted `NULL`, which failed the policy. Fixed by fetching the current user from the Supabase browser client immediately before the insert and including `user_id` in the payload.
+
+**File:** `src/app/(dashboard)/playground/PlaygroundClient.tsx`
+
+---
+
+## Schema Housekeeping
+
+Created `supabase/migrations/` to document schema state going forward:
+
+- `20260101000000_initial_schema.sql` — full schema: `profiles`, `api_keys`, `runs`, RLS policies, signup trigger
+- `20260320000000_api_keys_unique_constraint.sql` — the unique constraint that unblocked the upsert
+
+No migration runner is configured — these files are documentation of what's been applied manually in Supabase. Worth wiring up `supabase db push` if schema changes become frequent.
+
+---
+
+## Rebrand: Prism
+
+Full visual identity pass. 18 files changed.
+
+**Brand decisions:**
+- Name: **Prism** — one prompt in, multiple model outputs out. Matches what a prism does to light.
+- Tagline: *"One prompt. Every model."*
+- Icon: SVG prism triangle with colored refraction lines (indigo, violet, blue, emerald)
+
+**Design system:**
+- Dark base: `#0D1117` (page), `#161B22` (surface), `#1E2330` (elevated), `#30363D` (border)
+- Text: `#E6EDF3` (primary), `#8B949E` (secondary), `#484F58` (muted)
+- Accent: `indigo-500` — used exclusively for primary CTAs and focus rings
+- Save button: `emerald-600` — semantically distinct from Run
+- Fixed body font: was falling back to Arial despite Geist being loaded
+
+**Landing page:** Hero, 3-feature grid, explicit security section (names AES-256-GCM, explains zero-knowledge key storage), CTA, footer.
+
+**KeyManager:** Inline security callout with shield icon placed directly in the API key form — where user anxiety is highest.
+
+**Header fix (post-deploy):** Logo link was sending authenticated users back to the splash page. Fixed: authenticated users go to `/playground`, demo users go to `/`.
+
+---
+
+## Patterns Worth Noting
+
+**RLS `FOR ALL` doesn't cover writes the way you'd expect.** `FOR ALL USING (...)` applies the USING expression to SELECT, UPDATE, and DELETE — but for INSERT, Postgres requires an explicit `WITH CHECK`. Using `FOR ALL` without `WITH CHECK` silently allows reads while blocking writes. Always split by operation on tables that need insert protection.
+
+**Don't omit `user_id` from inserts when RLS depends on it.** If the `WITH CHECK` policy is `auth.uid() = user_id`, the row must include `user_id`. A missing column means `NULL`, which never matches `auth.uid()`. The error surface is an RLS violation, not a null constraint — easy to misread.
+
+**The Supabase signup trigger is load-bearing.** Any table that FKs to `profiles` will silently fail writes for users who don't have a profile row. The trigger is not set up by default — it must be created explicitly and backfilled for any existing users.
+
+---
+
 # Devlog — March 20, 2026: Code Review Findings & Fixes (M4)
 
 ## Summary
