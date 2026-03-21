@@ -47,7 +47,7 @@ export default function Header({ userEmail, isDemo }: HeaderProps) {
     <header className="border-b border-[#30363D] bg-[#0D1117]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-14">
         <nav className="flex items-center gap-6">
-          <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+          <Link href={isDemo ? "/" : "/playground"} className="flex items-center gap-2 hover:opacity-80 transition-opacity">
             <PrismIcon className="w-6 h-6 text-[#E6EDF3]" />
             <span className="text-sm font-semibold text-[#E6EDF3] tracking-tight">Prism</span>
           </Link>
