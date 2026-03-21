@@ -37,7 +37,7 @@ export default function KeyManager() {
             if (data && typeof data.error === "string") message = data.error;
           } catch { /* ignore */ }
           if (res.status === 401) {
-            message = "Your session has expired. Please sign in again to view your API keys.";
+            message = "Your session has expired. Please sign in again.";
           }
           setKeys([]);
           setError(message);
@@ -49,7 +49,7 @@ export default function KeyManager() {
       } catch {
         if (!active) return;
         setKeys([]);
-        setError("Unable to connect to the server. Please try again.");
+        setError("Unable to connect. Please try again.");
       }
     }
     load();
@@ -110,58 +110,75 @@ export default function KeyManager() {
   }
 
   return (
-    <div className="border border-gray-200 rounded-lg p-4 space-y-4">
-      <h2 className="text-sm font-semibold text-gray-900">API Keys</h2>
+    <div className="border border-[#30363D] rounded-lg overflow-hidden">
+      <div className="px-4 py-3 border-b border-[#30363D] bg-[#1E2330]">
+        <h2 className="text-sm font-semibold text-[#E6EDF3]">API Keys</h2>
+      </div>
 
-      {keys.length > 0 && (
-        <ul className="space-y-2">
-          {keys.map((k) => (
-            <li key={k.id} className="flex items-center justify-between text-sm">
-              <span className="text-gray-700">
-                {PROVIDER_LABELS[k.provider]}{" "}
-                <span className="font-mono text-gray-500">…{k.key_hint}</span>
-              </span>
-              <button
-                onClick={() => handleDelete(k.id)}
-                disabled={deletingId === k.id}
-                className="text-red-500 hover:text-red-700 text-xs disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {deletingId === k.id ? "Removing…" : "Remove"}
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-
-      <form onSubmit={handleSave} className="space-y-2">
-        {error && <p className="text-xs text-red-600">{error}</p>}
-        {success && <p className="text-xs text-green-600">{success}</p>}
-        <div className="flex gap-2">
-          <select
-            value={provider}
-            onChange={(e) => setProvider(e.target.value as ProviderName)}
-            className="border border-gray-300 rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="anthropic">Anthropic</option>
-            <option value="openai">OpenAI</option>
-          </select>
-          <input
-            type="password"
-            placeholder="Paste API key…"
-            value={apiKey}
-            onChange={(e) => setApiKey(e.target.value)}
-            required
-            className="flex-1 border border-gray-300 rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <button
-            type="submit"
-            disabled={saving}
-            className="bg-gray-900 text-white px-3 py-1.5 rounded text-sm hover:bg-gray-700 disabled:opacity-50 transition-colors"
-          >
-            {saving ? "Saving…" : "Save"}
-          </button>
+      <div className="p-4 space-y-4">
+        {/* Security note */}
+        <div className="flex gap-2.5 bg-indigo-500/5 border border-indigo-500/15 rounded-md px-3 py-2.5">
+          <svg className="w-4 h-4 text-indigo-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 3l7 4v5c0 4.418-3.134 8.573-7 9.93C8.134 20.573 5 16.418 5 12V7l7-4z" />
+          </svg>
+          <p className="text-xs text-[#8B949E] leading-relaxed">
+            Keys are encrypted with{" "}
+            <span className="text-[#E6EDF3]">AES-256-GCM</span> before storage.
+            Only the last 4 characters are ever readable. Your full key is
+            inaccessible to us.
+          </p>
         </div>
-      </form>
+
+        {keys.length > 0 && (
+          <ul className="space-y-2">
+            {keys.map((k) => (
+              <li key={k.id} className="flex items-center justify-between text-sm py-1">
+                <span className="text-[#8B949E]">
+                  {PROVIDER_LABELS[k.provider]}{" "}
+                  <span className="font-mono text-[#484F58]">…{k.key_hint}</span>
+                </span>
+                <button
+                  onClick={() => handleDelete(k.id)}
+                  disabled={deletingId === k.id}
+                  className="text-red-400 hover:text-red-300 text-xs disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                >
+                  {deletingId === k.id ? "Removing…" : "Remove"}
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        <form onSubmit={handleSave} className="space-y-2">
+          {error && <p className="text-xs text-red-400">{error}</p>}
+          {success && <p className="text-xs text-emerald-400">{success}</p>}
+          <div className="flex gap-2">
+            <select
+              value={provider}
+              onChange={(e) => setProvider(e.target.value as ProviderName)}
+              className="border border-[#30363D] bg-[#1E2330] text-[#E6EDF3] rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+              <option value="anthropic">Anthropic</option>
+              <option value="openai">OpenAI</option>
+            </select>
+            <input
+              type="password"
+              placeholder="Paste API key…"
+              value={apiKey}
+              onChange={(e) => setApiKey(e.target.value)}
+              required
+              className="flex-1 border border-[#30363D] bg-[#1E2330] text-[#E6EDF3] placeholder-[#484F58] rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+            <button
+              type="submit"
+              disabled={saving}
+              className="bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-1.5 rounded text-sm font-medium disabled:opacity-50 transition-colors"
+            >
+              {saving ? "Saving…" : "Save"}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

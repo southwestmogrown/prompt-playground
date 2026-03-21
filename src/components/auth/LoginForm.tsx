@@ -31,14 +31,14 @@ export default function LoginForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow p-8 space-y-4">
+    <form onSubmit={handleSubmit} className="bg-[#161B22] border border-[#30363D] rounded-xl p-8 space-y-4">
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded text-sm">
+        <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded text-sm">
           {error}
         </div>
       )}
       <div>
-        <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor="email" className="block text-xs font-medium text-[#8B949E] uppercase tracking-wide mb-1.5">
           Email
         </label>
         <input
@@ -47,11 +47,11 @@ export default function LoginForm() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full border border-[#30363D] bg-[#0D1117] text-[#E6EDF3] placeholder-[#484F58] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
         />
       </div>
       <div>
-        <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor="password" className="block text-xs font-medium text-[#8B949E] uppercase tracking-wide mb-1.5">
           Password
         </label>
         <input
@@ -60,19 +60,19 @@ export default function LoginForm() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full border border-[#30363D] bg-[#0D1117] text-[#E6EDF3] placeholder-[#484F58] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
         />
       </div>
       <button
         type="submit"
         disabled={loading}
-        className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        className="w-full bg-indigo-500 hover:bg-indigo-600 text-white py-2 px-4 rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
       >
         {loading ? "Signing in…" : "Sign in"}
       </button>
-      <p className="text-center text-sm text-gray-600">
+      <p className="text-center text-sm text-[#8B949E]">
         Don&apos;t have an account?{" "}
-        <Link href="/signup" className="text-blue-600 hover:underline">
+        <Link href="/signup" className="text-indigo-400 hover:text-indigo-300 transition-colors">
           Sign up
         </Link>
       </p>

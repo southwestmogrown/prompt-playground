@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import LoginForm from "@/components/auth/LoginForm";
 
 export const metadata: Metadata = {
-  title: "Sign In — Prompt Playground",
+  title: "Sign In — Prism",
 };
 
 export default async function LoginPage() {
@@ -13,9 +13,10 @@ export default async function LoginPage() {
   if (user) redirect("/playground");
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+    <main className="min-h-screen flex items-center justify-center bg-[#0D1117] px-4">
       <div className="w-full max-w-md">
-        <h1 className="text-2xl font-bold text-center mb-8 text-gray-900">Sign in to Prompt Playground</h1>
+        <h1 className="text-2xl font-bold text-center mb-2 text-[#E6EDF3]">Welcome back</h1>
+        <p className="text-center text-sm text-[#8B949E] mb-8">Sign in to your Prism account</p>
         <LoginForm />
       </div>
     </main>

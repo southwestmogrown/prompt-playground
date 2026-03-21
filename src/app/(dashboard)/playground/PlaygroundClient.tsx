@@ -150,7 +150,7 @@ export default function PlaygroundClient({
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-[#0D1117]">
       <Header userEmail={userEmail} isDemo={isDemo} />
 
       {isDemo && (
@@ -166,7 +166,7 @@ export default function PlaygroundClient({
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left panel: inputs */}
           <div className="lg:col-span-1 space-y-4">
-            <h1 className="text-xl font-bold text-gray-900">Playground</h1>
+            <h1 className="text-lg font-semibold text-[#E6EDF3] tracking-tight">Playground</h1>
 
             <PromptEditor
               systemPrompt={systemPrompt}
@@ -183,7 +183,7 @@ export default function PlaygroundClient({
             />
 
             {error && (
-              <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded px-3 py-2">
+              <p className="text-sm text-red-400 bg-red-500/10 border border-red-500/20 rounded px-3 py-2">
                 {error}
               </p>
             )}
@@ -191,7 +191,7 @@ export default function PlaygroundClient({
             <button
               onClick={handleRun}
               disabled={loading || (isDemo && limitReached)}
-              className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="w-full bg-indigo-500 hover:bg-indigo-600 text-white py-2 px-4 rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {loading ? "Running…" : isDemo && limitReached ? "Demo limit reached" : "Run"}
             </button>
@@ -202,13 +202,13 @@ export default function PlaygroundClient({
           {/* Right panel: responses */}
           <div className="lg:col-span-2">
             {loading && (
-              <div className="flex items-center justify-center h-40 text-gray-400 text-sm">
+              <div className="flex items-center justify-center h-40 text-[#484F58] text-sm">
                 Waiting for responses…
               </div>
             )}
 
             {!loading && responses.length === 0 && (
-              <div className="flex items-center justify-center h-40 text-gray-400 text-sm border-2 border-dashed border-gray-200 rounded-lg">
+              <div className="flex items-center justify-center h-40 text-[#484F58] text-sm border-2 border-dashed border-[#30363D] rounded-lg">
                 Responses will appear here
               </div>
             )}
@@ -220,12 +220,12 @@ export default function PlaygroundClient({
                     <button
                       onClick={handleSave}
                       disabled={saving || saved}
-                      className="bg-green-600 text-white py-1.5 px-4 rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white py-1.5 px-4 rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
-                      {saving ? "Saving…" : saved ? "Saved!" : "Save Run"}
+                      {saving ? "Saving…" : saved ? "Saved ✓" : "Save Run"}
                     </button>
                     {saveError && (
-                      <p className="text-sm text-red-600">{saveError}</p>
+                      <p className="text-sm text-red-400">{saveError}</p>
                     )}
                   </div>
                 )}

@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Prompt Playground",
-  description: "Run prompts against multiple AI models simultaneously. Compare responses, score them, and save runs for later review.",
+  title: "Prism — One prompt. Every model.",
+  description: "Run any prompt across Claude, GPT-4, and more simultaneously. Compare responses side by side, score them, and save what matters.",
 };
 
 export default function RootLayout({

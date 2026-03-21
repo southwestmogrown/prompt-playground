@@ -35,31 +35,31 @@ export default function RunCard({ run }: RunCardProps) {
   }, null);
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+    <div className="bg-[#161B22] border border-[#30363D] rounded-lg overflow-hidden">
       {/* Collapsed header — always visible */}
       <div className="px-4 py-3 flex items-start gap-3">
         <div className="flex-1 min-w-0 space-y-1.5">
-          <p className="text-sm text-gray-800 leading-snug">
+          <p className="text-sm text-[#E6EDF3] leading-snug">
             {truncate(run.user_message, 120)}
           </p>
           <div className="flex flex-wrap gap-1.5 items-center">
             {run.models.map((m) => (
               <span
                 key={m}
-                className="inline-block bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded-full"
+                className="inline-block bg-[#1E2330] text-[#8B949E] text-xs px-2 py-0.5 rounded-full border border-[#30363D]"
               >
                 {modelName(m)}
               </span>
             ))}
-            <span className="text-xs text-gray-400 ml-1">
-              Best score: {bestScore !== null ? `${bestScore}/5` : "—"}
+            <span className="text-xs text-[#484F58] ml-1 font-mono">
+              Best: {bestScore !== null ? `${bestScore}/5` : "—"}
             </span>
           </div>
-          <p className="text-xs text-gray-400">{formatDate(run.created_at)}</p>
+          <p className="text-xs text-[#484F58] font-mono">{formatDate(run.created_at)}</p>
         </div>
         <button
           onClick={() => setExpanded((v) => !v)}
-          className="shrink-0 text-xs text-blue-600 hover:text-blue-800 mt-0.5"
+          className="shrink-0 text-xs text-indigo-400 hover:text-indigo-300 transition-colors mt-0.5"
         >
           {expanded ? "Collapse" : "Expand"}
         </button>
@@ -67,16 +67,16 @@ export default function RunCard({ run }: RunCardProps) {
 
       {/* Expanded detail */}
       {expanded && (
-        <div className="border-t border-gray-100 px-4 py-4 space-y-4 bg-gray-50">
+        <div className="border-t border-[#30363D] px-4 py-4 space-y-4 bg-[#0D1117]">
           {run.system_prompt && (
             <div>
-              <p className="text-xs font-medium text-gray-500 mb-1">System prompt</p>
-              <p className="text-sm text-gray-700 whitespace-pre-wrap">{run.system_prompt}</p>
+              <p className="text-xs font-medium text-[#484F58] uppercase tracking-wide mb-1">System prompt</p>
+              <p className="text-sm text-[#8B949E] whitespace-pre-wrap font-mono">{run.system_prompt}</p>
             </div>
           )}
           <div>
-            <p className="text-xs font-medium text-gray-500 mb-1">User message</p>
-            <p className="text-sm text-gray-700 whitespace-pre-wrap">{run.user_message}</p>
+            <p className="text-xs font-medium text-[#484F58] uppercase tracking-wide mb-1">User message</p>
+            <p className="text-sm text-[#8B949E] whitespace-pre-wrap font-mono">{run.user_message}</p>
           </div>
           <div
             className={`grid gap-3 ${
@@ -84,21 +84,21 @@ export default function RunCard({ run }: RunCardProps) {
             }`}
           >
             {run.responses.map((r) => (
-              <div key={r.model} className="bg-white border border-gray-200 rounded-lg">
-                <div className="flex items-center justify-between px-3 py-2 border-b border-gray-100">
-                  <span className="text-xs font-medium text-gray-700">{modelName(r.model)}</span>
-                  <div className="flex items-center gap-2 text-xs text-gray-400">
+              <div key={r.model} className="bg-[#161B22] border border-[#30363D] rounded-lg">
+                <div className="flex items-center justify-between px-3 py-2 border-b border-[#30363D] bg-[#1E2330] rounded-t-lg">
+                  <span className="text-xs font-medium text-[#E6EDF3]">{modelName(r.model)}</span>
+                  <div className="flex items-center gap-2 text-xs font-mono">
                     {r.score !== null && (
-                      <span className="text-blue-600 font-medium">{r.score}/5</span>
+                      <span className="text-indigo-400 font-medium">{r.score}/5</span>
                     )}
-                    <span>{r.latency_ms}ms</span>
+                    <span className="text-[#484F58]">{r.latency_ms}ms</span>
                   </div>
                 </div>
                 <div className="px-3 py-2">
                   {r.error ? (
-                    <p className="text-xs text-red-600 italic">{r.error}</p>
+                    <p className="text-xs text-red-400 italic">{r.error}</p>
                   ) : (
-                    <p className="text-sm text-gray-800 whitespace-pre-wrap leading-relaxed">
+                    <p className="text-sm text-[#E6EDF3] whitespace-pre-wrap leading-relaxed">
                       {r.response}
                     </p>
                   )}

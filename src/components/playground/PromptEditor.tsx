@@ -16,9 +16,9 @@ export default function PromptEditor({
   return (
     <div className="space-y-3">
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block text-xs font-medium text-[#8B949E] mb-1 uppercase tracking-wide">
           System prompt{" "}
-          <span className="font-normal text-gray-400">(optional)</span>
+          <span className="normal-case font-normal text-[#484F58]">(optional)</span>
         </label>
         <textarea
           rows={3}
@@ -26,12 +26,12 @@ export default function PromptEditor({
           value={systemPrompt}
           onChange={(e) => onSystemPromptChange(e.target.value)}
           disabled={disabled}
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm resize-y focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-400"
+          className="w-full border border-[#30363D] bg-[#161B22] text-[#E6EDF3] placeholder-[#484F58] rounded-lg px-3 py-2 text-sm resize-y focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 font-mono"
         />
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          User message <span className="text-red-500">*</span>
+        <label className="block text-xs font-medium text-[#8B949E] mb-1 uppercase tracking-wide">
+          User message <span className="text-red-400 normal-case font-normal">*</span>
         </label>
         <textarea
           rows={5}
@@ -39,7 +39,7 @@ export default function PromptEditor({
           value={userMessage}
           onChange={(e) => onUserMessageChange(e.target.value)}
           disabled={disabled}
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm resize-y focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-400"
+          className="w-full border border-[#30363D] bg-[#161B22] text-[#E6EDF3] placeholder-[#484F58] rounded-lg px-3 py-2 text-sm resize-y focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 font-mono"
         />
       </div>
     </div>

@@ -17,7 +17,7 @@ export default function ModelSelector({ models, selected, onChange }: ModelSelec
 
   return (
     <div className="space-y-2">
-      <p className="text-sm font-medium text-gray-700">Models</p>
+      <p className="text-xs font-medium text-[#8B949E] uppercase tracking-wide">Models</p>
       <div className="flex flex-wrap gap-2">
         {models.map((model) => {
           const checked = selected.includes(model.id);
@@ -26,8 +26,8 @@ export default function ModelSelector({ models, selected, onChange }: ModelSelec
               key={model.id}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-sm cursor-pointer select-none transition-colors ${
                 checked
-                  ? "bg-blue-50 border-blue-400 text-blue-800"
-                  : "bg-white border-gray-300 text-gray-700 hover:border-gray-400"
+                  ? "bg-indigo-500/10 border-indigo-500/50 text-indigo-300"
+                  : "bg-[#161B22] border-[#30363D] text-[#8B949E] hover:border-[#484F58] hover:text-[#E6EDF3]"
               }`}
             >
               <input

@@ -24,12 +24,12 @@ export default async function HistoryPage() {
     .limit(50);
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-[#0D1117]">
       <Header userEmail={user.email} />
       <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6">
-        <h1 className="text-xl font-bold text-gray-900 mb-6">History</h1>
+        <h1 className="text-lg font-semibold text-[#E6EDF3] tracking-tight mb-6">History</h1>
         {runsError ? (
-          <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded px-4 py-3">
+          <p className="text-sm text-red-400 bg-red-500/10 border border-red-500/20 rounded px-4 py-3">
             Failed to load history: {runsError.message}
           </p>
         ) : (

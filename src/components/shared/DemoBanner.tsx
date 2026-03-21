@@ -9,28 +9,28 @@ export default function DemoBanner({ runsUsed, runLimit, limitReached, onSignUp 
   const remaining = Math.max(0, runLimit - runsUsed);
 
   return (
-    <div className="bg-blue-50 border-b border-blue-200 px-4 py-2">
+    <div className="border-b border-indigo-500/20 bg-indigo-500/5 px-4 py-2.5">
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-4 flex-wrap">
-        <p className="text-sm text-blue-800">
+        <p className="text-sm text-[#8B949E]">
           {limitReached ? (
             <>
-              <span className="font-medium">Demo limit reached</span> — sign up
-              to continue.
+              <span className="font-medium text-[#E6EDF3]">Demo limit reached</span>
+              {" "}— sign up for unlimited runs, all models, and saved history.
             </>
           ) : (
             <>
-              <span className="font-medium">Demo mode</span> — You have{" "}
-              <span className="font-semibold">{remaining}</span> of {runLimit}{" "}
-              free runs remaining. Sign up to unlock unlimited runs, all models,
-              and saved history.
+              <span className="font-medium text-[#E6EDF3]">Demo mode</span>
+              {" "}—{" "}
+              <span className="font-semibold text-indigo-400">{remaining}</span> of {runLimit} free runs remaining.
+              Sign up to unlock everything.
             </>
           )}
         </p>
         <button
           onClick={onSignUp}
-          className="text-sm font-medium bg-blue-600 text-white px-3 py-1 rounded-md hover:bg-blue-700 transition-colors whitespace-nowrap"
+          className="text-sm font-medium bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-1.5 rounded-md transition-colors whitespace-nowrap"
         >
-          Sign Up Free
+          Sign up free
         </button>
       </div>
     </div>
