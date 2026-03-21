@@ -129,7 +129,9 @@ export default function PlaygroundClient({
         score: scores[r.model] ?? null,
       }));
       const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
       const { error: dbError } = await supabase.from("runs").insert({
+        user_id: user?.id,
         system_prompt: systemPrompt,
         user_message: userMessage,
         models: selectedModels,
