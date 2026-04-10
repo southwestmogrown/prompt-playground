@@ -39,11 +39,18 @@ export interface Run {
   created_at: string;
 }
 
+export interface ModelParams {
+  temperature?: number;
+  top_p?: number;
+  max_tokens?: number;
+}
+
 export interface RunRequest {
   systemPrompt: string;
   userMessage: string;
   models: string[];
   isDemo?: boolean;
+  parameters?: Record<string, ModelParams>;
 }
 
 export interface RunResult {

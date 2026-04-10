@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import type { ModelOption, ModelResponse, RunResult } from "@/lib/types";
+import type { ModelOption, ModelResponse, RunResult, ModelParams } from "@/lib/types";
 import { getDemoSession, incrementDemoRun, saveDraft, getDraft, clearDraft, getRestoreRun, clearRestoreRun } from "@/lib/demo";
 import { createClient } from "@/lib/supabase/client";
 import Header from "@/components/shared/Header";
@@ -13,6 +13,9 @@ import PromptEditor from "@/components/playground/PromptEditor";
 import ResponseCard from "@/components/playground/ResponseCard";
 import DiffView from "@/components/playground/DiffView";
 import TemplateSelector from "@/components/playground/TemplateSelector";
+import PersonaSelector from "@/components/playground/PersonaSelector";
+import ExportModal from "@/components/playground/ExportModal";
+import InjectionPanel from "@/components/playground/InjectionPanel";
 
 interface PlaygroundClientProps {
   models: ModelOption[];
@@ -42,6 +45,8 @@ export default function PlaygroundClient({
   const [saveError, setSaveError] = useState<string | null>(null);
   const [diffMode, setDiffMode] = useState<"off" | "selecting" | "viewing">("off");
   const [diffSelections, setDiffSelections] = useState<string[]>([]);
+  const [showExport, setShowExport] = useState(false);
+  const [modelParams] = useState<Record<string, ModelParams>>({});
 
   // Restore state from a previous draft (pre-signup) or from history "Open in Playground"
   useEffect(() => {
@@ -79,8 +84,17 @@ export default function PlaygroundClient({
     router.push("/signup");
   }
 
+  async function handleRunWithMessage(message: string) {
+    setUserMessage(message);
+    await runPrompt(message);
+  }
+
   async function handleRun() {
-    if (!userMessage.trim()) {
+    await runPrompt(userMessage);
+  }
+
+  async function runPrompt(message: string) {
+    if (!message.trim()) {
       setError("Please enter a user message.");
       return;
     }
@@ -108,7 +122,7 @@ export default function PlaygroundClient({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           systemPrompt,
-          userMessage,
+          userMessage: message,
           models: selectedModels,
           isDemo,
         }),
@@ -184,12 +198,23 @@ export default function PlaygroundClient({
           <div className="lg:col-span-1 space-y-4">
             <h1 className="text-lg font-semibold text-[#E6EDF3] tracking-tight">Playground</h1>
 
+            <PersonaSelector
+              systemPrompt={systemPrompt}
+              onLoad={(prompt) => setSystemPrompt(prompt)}
+            />
+
             <PromptEditor
               systemPrompt={systemPrompt}
               userMessage={userMessage}
               onSystemPromptChange={setSystemPrompt}
               onUserMessageChange={setUserMessage}
               disabled={loading}
+            />
+
+            <InjectionPanel
+              onInject={setUserMessage}
+              onInjectAndRun={handleRunWithMessage}
+              loading={loading}
             />
 
             {!isDemo && (
@@ -249,6 +274,13 @@ export default function PlaygroundClient({
                       {saving ? "Saving…" : saved ? "Saved ✓" : "Save Run"}
                     </button>
                   )}
+
+                  <button
+                    onClick={() => setShowExport(true)}
+                    className="py-1.5 px-4 rounded-lg text-sm font-medium border border-[#30363D] text-[#8B949E] hover:text-[#E6EDF3] hover:border-[#484F58] transition-colors"
+                  >
+                    Export
+                  </button>
 
                   {/* Diff controls — only for non-errored responses */}
                   {responses.filter((r) => !r.error).length >= 2 && (
@@ -374,6 +406,16 @@ export default function PlaygroundClient({
           </div>
         </div>
       </main>
+
+      {showExport && (
+        <ExportModal
+          systemPrompt={systemPrompt}
+          userMessage={userMessage}
+          selectedModels={selectedModels}
+          modelParams={modelParams}
+          onClose={() => setShowExport(false)}
+        />
+      )}
     </div>
   );
 }
