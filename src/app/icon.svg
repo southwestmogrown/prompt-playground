@@ -1,4 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
   <rect width="32" height="32" rx="6" fill="#2563EB"/>
-  <text x="16" y="22" font-family="monospace" font-size="16" font-weight="bold" fill="white" text-anchor="middle">P</text>
+  <!-- Prison/bars icon -->
+  <rect x="6" y="8" width="2.5" height="16" rx="1.25" fill="white"/>
+  <rect x="11" y="8" width="2.5" height="16" rx="1.25" fill="white"/>
+  <rect x="16" y="8" width="2.5" height="16" rx="1.25" fill="white"/>
+  <rect x="21" y="8" width="2.5" height="16" rx="1.25" fill="white"/>
+  <rect x="5" y="8" width="22" height="2.5" rx="1.25" fill="white"/>
+  <rect x="5" y="21.5" width="22" height="2.5" rx="1.25" fill="white"/>
 </svg>

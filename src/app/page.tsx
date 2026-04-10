@@ -117,9 +117,19 @@ export default function LandingPage() {
                   aria-hidden="true"
                 />
               </div>
-              {/* Center icon */}
+              {/* Center icon — prison bars SVG */}
               <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-28 h-28 rounded-3xl bg-gradient-to-br from-primary to-primary-container shadow-[0_8px_32px_rgba(160,58,15,0.4)]" />
+                <div className="w-28 h-28 rounded-3xl bg-[#2563EB] shadow-[0_8px_32px_rgba(37,99,235,0.4)] flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 28" className="w-14 h-14" fill="none">
+                    <rect x="3" y="4" width="2.2" height="20" rx="1.1" fill="white"/>
+                    <rect x="8" y="4" width="2.2" height="20" rx="1.1" fill="white"/>
+                    <rect x="13" y="4" width="2.2" height="20" rx="1.1" fill="white"/>
+                    <rect x="18" y="4" width="2.2" height="20" rx="1.1" fill="white"/>
+                    <rect x="23" y="4" width="2.2" height="20" rx="1.1" fill="white"/>
+                    <rect x="2" y="4" width="24" height="2.2" rx="1.1" fill="white"/>
+                    <rect x="2" y="21.8" width="24" height="2.2" rx="1.1" fill="white"/>
+                  </svg>
+                </div>
               </div>
               {/* Floating badges */}
               <div className="absolute -top-3 -right-3 glass-panel ghost-border rounded-2xl px-3 py-2 flex items-center gap-1.5 shadow-ambient">
