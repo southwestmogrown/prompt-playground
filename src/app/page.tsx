@@ -105,7 +105,7 @@ export default function LandingPage() {
                 <img
                   src="/prism-hero-1.png"
                   alt="Prism"
-                  className="w-20 h-20 rounded-2xl object-contain"
+                  className="w-28 h-28 rounded-3xl object-cover shadow-[0_8px_32px_rgba(160,58,15,0.4)]"
                 />
               </div>
               {/* Floating badges */}
