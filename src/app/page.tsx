@@ -117,18 +117,16 @@ export default function LandingPage() {
                   aria-hidden="true"
                 />
               </div>
-              {/* Center icon — prison bars SVG */}
+              {/* Center icon — official prism icon */}
               <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-28 h-28 rounded-3xl bg-[#2563EB] shadow-[0_8px_32px_rgba(37,99,235,0.4)] flex items-center justify-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 28" className="w-14 h-14" fill="none">
-                    <rect x="3" y="4" width="2.2" height="20" rx="1.1" fill="white"/>
-                    <rect x="8" y="4" width="2.2" height="20" rx="1.1" fill="white"/>
-                    <rect x="13" y="4" width="2.2" height="20" rx="1.1" fill="white"/>
-                    <rect x="18" y="4" width="2.2" height="20" rx="1.1" fill="white"/>
-                    <rect x="23" y="4" width="2.2" height="20" rx="1.1" fill="white"/>
-                    <rect x="2" y="4" width="24" height="2.2" rx="1.1" fill="white"/>
-                    <rect x="2" y="21.8" width="24" height="2.2" rx="1.1" fill="white"/>
-                  </svg>
+                <div className="w-28 h-28 rounded-3xl overflow-hidden shadow-[0_8px_32px_rgba(37,99,235,0.4)]">
+                  <Image
+                    src="/prism-icon-official.png"
+                    alt="Prism"
+                    width={112}
+                    height={112}
+                    className="object-cover w-full h-full"
+                  />
                 </div>
               </div>
               {/* Floating badges */}
