@@ -197,7 +197,7 @@ export default function PlaygroundClient({
 
       {!isDemo && <Sidebar userEmail={userEmail} />}
 
-      <main className={`relative ${!isDemo ? "lg:ml-72" : ""} px-4 sm:px-6 py-6 pb-16`}>
+      <main className={`relative ${!isDemo ? "lg:ml-64" : ""} px-4 sm:px-6 py-6 pb-16`}>
         <div className="max-w-7xl mx-auto">
 
           {/* Page header */}

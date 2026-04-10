@@ -1,3 +1,7 @@
+"use client";
+
+import { useState } from "react";
+import ReactMarkdown from "react-markdown";
 import type { ModelResponse } from "@/lib/types";
 import { estimateCost } from "@/lib/pricing";
 import ScoreInput from "./ScoreInput";
@@ -23,6 +27,7 @@ export default function ResponseCard({
   minLatency,
   isFastest,
 }: ResponseCardProps) {
+  const [expanded, setExpanded] = useState(false);
   const cost = !response.error
     ? estimateCost(response.model, inputText, response.response)
     : null;
@@ -63,6 +68,15 @@ export default function ResponseCard({
             <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary">
               {response.latency_ms}ms
             </span>
+            <button
+              onClick={() => setExpanded((e) => !e)}
+              title={expanded ? "Collapse" : "Expand"}
+              className="w-7 h-7 rounded-lg bg-surface-container flex items-center justify-center hover:bg-surface-container-high transition-colors"
+            >
+              <span className={`material-symbols-outlined text-[14px] text-on-surface-variant transition-transform duration-300 ${expanded ? "rotate-180" : ""}`}>
+                expand_more
+              </span>
+            </button>
           </div>
         </div>
 
@@ -80,13 +94,13 @@ export default function ResponseCard({
       </div>
 
       {/* Response body */}
-      <div className="flex-1 px-5 py-4 min-h-[120px]">
+      <div className={`flex-1 px-5 py-4 ${expanded ? "max-h-none" : "max-h-52"} overflow-y-auto`}>
         {response.error ? (
           <p className="text-sm text-error italic">{response.error}</p>
         ) : (
-          <p className="text-sm text-on-surface whitespace-pre-wrap leading-relaxed font-medium">
-            {response.response}
-          </p>
+          <div className="text-sm text-on-surface leading-relaxed font-medium [&_p]:mb-2 [&_p:last-child]:mb-0 [&_code]:font-mono [&_code]:bg-surface-container-low [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded-md [&_code]:text-[13px] [&_pre]:bg-surface-container-low [&_pre]:rounded-xl [&_pre]:p-3 [&_pre]:overflow-x-auto [&_pre]:mb-2 [&_pre>code]:bg-transparent [&_pre>code]:p-0">
+            <ReactMarkdown>{response.response}</ReactMarkdown>
+          </div>
         )}
       </div>
 

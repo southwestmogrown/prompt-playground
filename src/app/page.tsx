@@ -102,11 +102,11 @@ export default function LandingPage() {
               <div className="absolute inset-12 glass-panel ghost-border rounded-[1.5rem] bg-white/60" />
               {/* Center icon */}
               <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary to-primary-container flex items-center justify-center shadow-[0_8px_32px_rgba(160,58,15,0.4)]">
-                  <span className="material-symbols-outlined text-on-primary text-[40px] font-black" style={{ fontVariationSettings: "'FILL' 1" }}>
-                    filter_vintage
-                  </span>
-                </div>
+                <img
+                  src="/prism-hero-1.png"
+                  alt="Prism"
+                  className="w-20 h-20 rounded-2xl object-contain"
+                />
               </div>
               {/* Floating badges */}
               <div className="absolute -top-3 -right-3 glass-panel ghost-border rounded-2xl px-3 py-2 flex items-center gap-1.5 shadow-ambient">

@@ -25,7 +25,7 @@ export default function Sidebar({ userEmail }: SidebarProps) {
   ];
 
   return (
-    <aside className="hidden lg:flex fixed left-4 top-20 bottom-4 w-64 rounded-3xl bg-stone-50/40 backdrop-blur-2xl ghost-border shadow-2xl shadow-orange-500/5 flex-col p-4 gap-2 z-40">
+    <aside className="hidden lg:flex fixed left-4 top-20 bottom-4 w-60 rounded-3xl bg-stone-50/40 backdrop-blur-2xl ghost-border shadow-2xl shadow-orange-500/5 flex-col p-4 gap-2 z-40">
       {/* Brand block */}
       <div className="flex items-center gap-3 px-2 py-3 mb-2">
         <div className="w-9 h-9 bg-gradient-to-br from-primary to-primary-container rounded-xl flex items-center justify-center shadow-sm">

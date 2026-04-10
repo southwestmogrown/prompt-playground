@@ -173,11 +173,11 @@ export default function KeyManager() {
               {success}
             </p>
           )}
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2">
             <select
               value={provider}
               onChange={(e) => setProvider(e.target.value as ProviderName)}
-              className="bg-surface-container-high ghost-border text-on-surface rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-tertiary/30 transition-all"
+              className="bg-surface-container-high ghost-border text-on-surface rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-tertiary/30 transition-all sm:shrink-0"
             >
               <option value="anthropic">Anthropic</option>
               <option value="openai">OpenAI</option>
@@ -192,12 +192,12 @@ export default function KeyManager() {
               value={apiKey}
               onChange={(e) => setApiKey(e.target.value)}
               required
-              className="flex-1 bg-surface-container-high ghost-border text-on-surface placeholder-outline rounded-xl px-3 py-2 text-sm focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-tertiary/30 transition-all"
+              className="flex-1 min-w-0 bg-surface-container-high ghost-border text-on-surface placeholder-outline rounded-xl px-3 py-2 text-sm focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-tertiary/30 transition-all"
             />
             <button
               type="submit"
               disabled={saving}
-              className="text-on-primary px-4 py-2 rounded-xl text-sm font-bold disabled:opacity-50 transition-all bg-gradient-to-r from-primary to-primary-container shadow-[0_4px_16px_rgba(160,58,15,0.25)] hover:shadow-[0_6px_20px_rgba(160,58,15,0.35)] hover:-translate-y-0.5"
+              className="text-on-primary px-4 py-2 rounded-xl text-sm font-bold disabled:opacity-50 transition-all bg-gradient-to-r from-primary to-primary-container shadow-[0_4px_16px_rgba(160,58,15,0.25)] hover:shadow-[0_6px_20px_rgba(160,58,15,0.35)] hover:-translate-y-0.5 sm:shrink-0"
             >
               {saving ? "Saving…" : "Save"}
             </button>

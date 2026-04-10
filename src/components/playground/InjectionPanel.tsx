@@ -74,71 +74,74 @@ export default function InjectionPanel({
       </button>
 
       {open && (
-        <div className="px-4 pb-4 space-y-3 border-t border-[rgba(174,173,170,0.10)]">
-          {/* Category chips */}
-          <div className="flex flex-wrap gap-1 pt-3">
-            {categories.map((cat) => (
-              <button
-                key={cat}
-                onClick={() => setActiveCategory(cat)}
-                className={`text-xs px-3 py-1 rounded-full font-semibold transition-colors ${
-                  activeCategory === cat
-                    ? "bg-error/15 text-error border border-error/25"
-                    : "bg-surface-container text-on-surface-variant hover:text-on-surface"
-                }`}
-              >
-                {cat}
-              </button>
-            ))}
-          </div>
+        <div className="border-t border-[rgba(174,173,170,0.10)]">
+          <div className="px-4 pt-3 max-h-[280px] overflow-y-auto">
+            {/* Category chips */}
+            <div className="flex flex-wrap gap-1 pb-3">
+              {categories.map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => setActiveCategory(cat)}
+                  className={`text-xs px-3 py-1 rounded-full font-semibold transition-colors ${
+                    activeCategory === cat
+                      ? "bg-error/15 text-error border border-error/25"
+                      : "bg-surface-container text-on-surface-variant hover:text-on-surface"
+                  }`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
 
-          {/* Test list */}
-          <div className="space-y-1">
-            {filtered.map((test) => (
-              <div key={test.id} className="ghost-border rounded-xl overflow-hidden">
-                <div className="flex items-center justify-between px-3 py-2">
-                  <div className="flex items-center gap-2 min-w-0">
+            {/* Test list */}
+            <div className="space-y-1">
+              {filtered.map((test) => (
+                <div key={test.id} className="ghost-border rounded-xl overflow-hidden">
+                  <div className="flex items-center justify-between px-3 py-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <button
+                        onClick={() => setExpandedId(expandedId === test.id ? null : test.id)}
+                        className="text-xs text-on-surface text-left truncate hover:text-primary transition-colors"
+                      >
+                        {test.label}
+                      </button>
+                      <span className={`text-[10px] shrink-0 font-semibold ${categoryColor[test.category] ?? "text-outline"}`}>
+                        {test.category}
+                      </span>
+                    </div>
                     <button
-                      onClick={() => setExpandedId(expandedId === test.id ? null : test.id)}
-                      className="text-xs text-on-surface text-left truncate hover:text-primary transition-colors"
+                      onClick={() => handleTest(test)}
+                      disabled={loading || runningAll}
+                      className="text-xs text-on-primary px-2.5 py-1 rounded-lg font-bold bg-gradient-to-r from-primary to-primary-container disabled:opacity-40 disabled:cursor-not-allowed shrink-0 ml-2 transition-all hover:-translate-y-0.5"
                     >
-                      {test.label}
+                      Test
                     </button>
-                    <span className={`text-[10px] shrink-0 font-semibold ${categoryColor[test.category] ?? "text-outline"}`}>
-                      {test.category}
-                    </span>
                   </div>
-                  <button
-                    onClick={() => handleTest(test)}
-                    disabled={loading || runningAll}
-                    className="text-xs text-on-primary px-2.5 py-1 rounded-lg font-bold bg-gradient-to-r from-primary to-primary-container disabled:opacity-40 disabled:cursor-not-allowed shrink-0 ml-2 transition-all hover:-translate-y-0.5"
-                  >
-                    Test
-                  </button>
+                  {expandedId === test.id && (
+                    <div className="px-3 pb-2.5 border-t border-[rgba(174,173,170,0.10)] pt-2 bg-surface-container-low/30">
+                      <p className="text-[11px] text-on-surface-variant font-mono leading-relaxed">
+                        {test.message}
+                      </p>
+                    </div>
+                  )}
                 </div>
-                {expandedId === test.id && (
-                  <div className="px-3 pb-2.5 border-t border-[rgba(174,173,170,0.10)] pt-2 bg-surface-container-low/30">
-                    <p className="text-[11px] text-on-surface-variant font-mono leading-relaxed">
-                      {test.message}
-                    </p>
-                  </div>
-                )}
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
+          <div className="px-4 pb-4 space-y-3">
+            {/* Test All */}
+            <button
+              onClick={handleTestAll}
+              disabled={loading || runningAll}
+              className="w-full text-xs border border-error/30 text-error hover:bg-error/8 py-2 rounded-xl font-bold transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              {runningAll ? "Running…" : `Test All (${filtered.length})`}
+            </button>
 
-          {/* Test All */}
-          <button
-            onClick={handleTestAll}
-            disabled={loading || runningAll}
-            className="w-full text-xs border border-error/30 text-error hover:bg-error/8 py-2 rounded-xl font-bold transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-          >
-            {runningAll ? "Running…" : `Test All (${filtered.length})`}
-          </button>
-
-          <p className="text-[11px] text-outline">
-            Click a test label to preview the message. &quot;Test&quot; runs it immediately with your current system prompt.
-          </p>
+            <p className="text-[11px] text-outline">
+              Click a test label to preview the message. &quot;Test&quot; runs it immediately with your current system prompt.
+            </p>
+          </div>
         </div>
       )}
     </div>
