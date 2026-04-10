@@ -8,9 +8,9 @@ import { callMistral } from "@/lib/providers/mistral";
 import { callGroq } from "@/lib/providers/groq";
 import { callXAI } from "@/lib/providers/xai";
 import { SUPPORTED_MODELS, DEMO_MODELS } from "@/lib/models";
-import type { RunRequest, ModelResponse, ProviderName } from "@/lib/types";
+import type { RunRequest, ModelResponse, ModelParams, ProviderName } from "@/lib/types";
 
-type ProviderFn = (modelId: string, systemPrompt: string, userMessage: string, apiKey: string) => Promise<{ response: string; latency_ms: number }>;
+type ProviderFn = (modelId: string, systemPrompt: string, userMessage: string, apiKey: string, params?: ModelParams) => Promise<{ response: string; latency_ms: number }>;
 
 const PROVIDER_MAP: Record<ProviderName, ProviderFn> = {
   anthropic: callAnthropic,
@@ -59,14 +59,15 @@ async function callModel(
   modelId: string,
   systemPrompt: string,
   userMessage: string,
-  apiKey: string
+  apiKey: string,
+  params?: ModelParams
 ): Promise<ModelResponse> {
   const model = SUPPORTED_MODELS.find((m) => m.id === modelId);
   if (!model) {
     return { model: modelId, response: "", score: null, latency_ms: 0, error: "Unknown model" };
   }
   try {
-    const result = await PROVIDER_MAP[model.provider](modelId, systemPrompt, userMessage, apiKey);
+    const result = await PROVIDER_MAP[model.provider](modelId, systemPrompt, userMessage, apiKey, params);
     return { model: modelId, response: result.response, score: null, latency_ms: result.latency_ms };
   } catch (err) {
     return {
@@ -81,7 +82,7 @@ async function callModel(
 
 export async function POST(request: NextRequest) {
   const body: RunRequest = await request.json();
-  const { systemPrompt = "", userMessage, models, isDemo } = body;
+  const { systemPrompt = "", userMessage, models, isDemo, parameters = {} } = body;
 
   if (!userMessage?.trim() || !models?.length) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
@@ -111,7 +112,7 @@ export async function POST(request: NextRequest) {
 
     const responses = await Promise.all(
       validModels.map((modelId) =>
-        callModel(modelId, systemPrompt, userMessage, demoKey)
+        callModel(modelId, systemPrompt, userMessage, demoKey, parameters[modelId])
       )
     );
     demoIpCounts.set(ip, count + 1);
@@ -168,7 +169,7 @@ export async function POST(request: NextRequest) {
           error: `No ${model.provider} API key configured`,
         });
       }
-      return callModel(modelId, systemPrompt, userMessage, apiKey);
+      return callModel(modelId, systemPrompt, userMessage, apiKey, parameters[modelId]);
     })
   );
 

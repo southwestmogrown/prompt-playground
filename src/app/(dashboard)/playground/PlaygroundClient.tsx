@@ -17,6 +17,7 @@ import TemplateSelector from "@/components/playground/TemplateSelector";
 import PersonaSelector from "@/components/playground/PersonaSelector";
 import ExportModal from "@/components/playground/ExportModal";
 import InjectionPanel from "@/components/playground/InjectionPanel";
+import ModelParamsPanel from "@/components/playground/ModelParamsPanel";
 
 interface PlaygroundClientProps {
   models: ModelOption[];
@@ -47,7 +48,7 @@ export default function PlaygroundClient({
   const [diffMode, setDiffMode] = useState<"off" | "selecting" | "viewing">("off");
   const [diffSelections, setDiffSelections] = useState<string[]>([]);
   const [showExport, setShowExport] = useState(false);
-  const [modelParams] = useState<Record<string, ModelParams>>({});
+  const [modelParams, setModelParams] = useState<Record<string, ModelParams>>({});
 
   useEffect(() => {
     if (!isDemo) {
@@ -154,6 +155,7 @@ export default function PlaygroundClient({
           userMessage: message,
           models: selectedModels,
           isDemo,
+          parameters: modelParams,
         }),
       });
 
@@ -279,6 +281,12 @@ export default function PlaygroundClient({
                 selected={selectedModels}
                 onChange={setSelectedModels}
                 availableProviders={storedProviders}
+              />
+
+              <ModelParamsPanel
+                selectedModels={selectedModels}
+                modelParams={modelParams}
+                onChange={setModelParams}
               />
 
               {error && (

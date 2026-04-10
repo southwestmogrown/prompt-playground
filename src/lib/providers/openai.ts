@@ -1,10 +1,12 @@
 import OpenAI from "openai";
+import type { ModelParams } from "@/lib/types";
 
 export async function callOpenAI(
   modelId: string,
   systemPrompt: string,
   userMessage: string,
-  apiKey: string
+  apiKey: string,
+  params?: ModelParams
 ): Promise<{ response: string; latency_ms: number }> {
   const client = new OpenAI({ apiKey });
   const start = Date.now();
@@ -18,6 +20,9 @@ export async function callOpenAI(
   const completion = await client.chat.completions.create({
     model: modelId,
     messages,
+    ...(params?.max_tokens !== undefined && { max_tokens: params.max_tokens }),
+    ...(params?.temperature !== undefined && { temperature: params.temperature }),
+    ...(params?.top_p !== undefined && { top_p: params.top_p }),
   });
 
   const latency_ms = Date.now() - start;

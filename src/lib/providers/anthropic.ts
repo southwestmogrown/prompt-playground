@@ -1,19 +1,23 @@
 import Anthropic from "@anthropic-ai/sdk";
+import type { ModelParams } from "@/lib/types";
 
 export async function callAnthropic(
   modelId: string,
   systemPrompt: string,
   userMessage: string,
-  apiKey: string
+  apiKey: string,
+  params?: ModelParams
 ): Promise<{ response: string; latency_ms: number }> {
   const client = new Anthropic({ apiKey });
   const start = Date.now();
 
   const message = await client.messages.create({
     model: modelId,
-    max_tokens: 4096,
+    max_tokens: params?.max_tokens ?? 4096,
     system: systemPrompt || undefined,
     messages: [{ role: "user", content: userMessage }],
+    ...(params?.temperature !== undefined && { temperature: params.temperature }),
+    ...(params?.top_p !== undefined && { top_p: params.top_p }),
   });
 
   const latency_ms = Date.now() - start;
