@@ -51,3 +51,25 @@ export function clearDraft() {
   if (typeof window === "undefined") return;
   sessionStorage.removeItem("playground_draft");
 }
+
+const RESTORE_RUN_KEY = "prism_restore_run";
+
+export function saveRestoreRun(systemPrompt: string, userMessage: string, models: string[]): void {
+  if (typeof window === "undefined") return;
+  sessionStorage.setItem(RESTORE_RUN_KEY, JSON.stringify({ systemPrompt, userMessage, models }));
+}
+
+export function getRestoreRun(): { systemPrompt: string; userMessage: string; models: string[] } | null {
+  if (typeof window === "undefined") return null;
+  const raw = sessionStorage.getItem(RESTORE_RUN_KEY);
+  try {
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+export function clearRestoreRun(): void {
+  if (typeof window === "undefined") return;
+  sessionStorage.removeItem(RESTORE_RUN_KEY);
+}

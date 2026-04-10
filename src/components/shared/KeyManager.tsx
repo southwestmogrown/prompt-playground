@@ -13,6 +13,10 @@ interface StoredKey {
 const PROVIDER_LABELS: Record<ProviderName, string> = {
   anthropic: "Anthropic",
   openai: "OpenAI",
+  google: "Google",
+  mistral: "Mistral",
+  groq: "Groq",
+  xai: "xAI",
 };
 
 export default function KeyManager() {
@@ -160,6 +164,10 @@ export default function KeyManager() {
             >
               <option value="anthropic">Anthropic</option>
               <option value="openai">OpenAI</option>
+              <option value="google">Google</option>
+              <option value="mistral">Mistral</option>
+              <option value="groq">Groq</option>
+              <option value="xai">xAI</option>
             </select>
             <input
               type="password"

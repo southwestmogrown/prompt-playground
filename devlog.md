@@ -1,3 +1,64 @@
+# Devlog — April 10, 2026: Multi-Provider Expansion
+
+## Summary
+
+Expanded provider support from 2 (Anthropic + OpenAI) to 6, adding Google Gemini, Mistral, Groq (Meta Llama), and xAI Grok. Refreshed the Anthropic model catalog to 4.6 and added newer OpenAI models. Total model count: 15 across 6 providers.
+
+---
+
+## What Changed
+
+### New providers
+
+**Google Gemini** — uses `@google/generative-ai` SDK (the only new package added). Google's API differs enough from the OpenAI chat completions shape that it warrants its own SDK: `getGenerativeModel()` + `generateContent()`, with system prompt passed as `systemInstruction`.
+
+**Mistral, Groq, xAI** — all three expose OpenAI-compatible chat completions APIs. Implemented as thin wrappers reusing the `openai` SDK with a custom `baseURL`:
+- Mistral: `https://api.mistral.ai/v1`
+- Groq: `https://api.groq.com/openai/v1`
+- xAI: `https://api.x.ai/v1`
+
+No new packages for these three.
+
+### Provider dispatch refactor
+
+Replaced a growing ternary chain with a `PROVIDER_MAP` object:
+
+```typescript
+const PROVIDER_MAP: Record<ProviderName, ProviderFn> = {
+  anthropic: callAnthropic,
+  openai: callOpenAI,
+  google: callGoogle,
+  mistral: callMistral,
+  groq: callGroq,
+  xai: callXAI,
+};
+
+const result = await PROVIDER_MAP[model.provider](modelId, systemPrompt, userMessage, apiKey);
+```
+
+`Record<ProviderName, ProviderFn>` means the TypeScript compiler will error at build time if a new provider is added to the `ProviderName` union without a corresponding entry in the map. Zero-cost exhaustiveness check.
+
+### Model catalog updates
+
+- Anthropic: `claude-opus-4-5` → `claude-opus-4-6`, `claude-sonnet-4-5` → `claude-sonnet-4-6`, Haiku model ID corrected to `claude-haiku-4-5-20251001`
+- OpenAI: added `gpt-4.1` and `o3-mini` alongside existing `gpt-4o` / `gpt-4o-mini`
+
+### KeyManager UI
+
+Added the four new providers to the dropdown and `PROVIDER_LABELS` map. The `Record<ProviderName, string>` type on `PROVIDER_LABELS` caught the omission at build time before it could ship as a runtime error.
+
+---
+
+## Patterns Worth Noting
+
+**OpenAI-compatible APIs reduce integration cost significantly.** Mistral, Groq, and xAI all took under 10 lines each to integrate — just a `baseURL` swap on the existing OpenAI client. When evaluating a new provider, checking for OpenAI compatibility first is worth the 30 seconds.
+
+**`Record<Union, V>` as an exhaustiveness check.** Using `Record<ProviderName, ...>` for both `PROVIDER_MAP` and `PROVIDER_LABELS` turns "did I forget a provider?" from a runtime bug into a compile-time error. No explicit switch exhaustion or runtime validation needed — the type does it.
+
+**Google's SDK is meaningfully different.** The `generateContent` API doesn't use a messages array — it takes a single content string for simple prompts, with `systemInstruction` as a top-level model config option. Worth noting if adding streaming later: Gemini's streaming API (`generateContentStream`) also differs from OpenAI's.
+
+---
+
 # Devlog — March 20, 2026: Production Bug Fixes + Prism Rebrand
 
 ## Summary

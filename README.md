@@ -2,13 +2,14 @@
 
 > Run any prompt against multiple AI models at once, compare responses side by side, and save the runs that matter.
 
-Built for developers and prompt engineers who are tired of switching tabs to test the same prompt across GPT-4, Claude, and whatever came out last week. Prompt Playground puts them all in one place.
+Built for developers and prompt engineers who are tired of switching tabs to test the same prompt across GPT-4, Claude, Gemini, and whatever came out last week. Prism puts them all in one place.
 
 ---
 
 ## Features
 
 - **Multi-model parallel execution** — run a prompt against any combination of supported models simultaneously, results appear as they land
+- **6 providers, 15 models** — Anthropic, OpenAI, Google Gemini, Mistral, Groq (Llama), and xAI Grok
 - **Side-by-side response comparison** — score each response and see latency per model
 - **Save and revisit runs** — authenticated users can save scored runs to a searchable history
 - **Demo mode** — try it without signing up; 3 runs, no API key required, powered by a server-side Anthropic key
@@ -23,7 +24,7 @@ Built for developers and prompt engineers who are tired of switching tabs to tes
 | Framework | Next.js 16 (App Router, TypeScript) |
 | Styling | Tailwind CSS v4 |
 | Auth & Database | Supabase (Postgres + RLS) |
-| AI Providers | Anthropic SDK, OpenAI SDK |
+| AI Providers | Anthropic, OpenAI, Google Generative AI, Mistral, Groq, xAI |
 | Deployment | Vercel |
 
 ---
@@ -34,7 +35,7 @@ Built for developers and prompt engineers who are tired of switching tabs to tes
 
 - Node.js 20+
 - A Supabase project (free tier works)
-- At least one AI provider API key (Anthropic and/or OpenAI)
+- At least one AI provider API key (Anthropic, OpenAI, Google, Mistral, Groq, or xAI)
 
 ### Installation
 
@@ -74,7 +75,22 @@ Open [http://localhost:3000](http://localhost:3000).
 
 **Demo mode** — hit the landing page and click "Try Demo." No account needed. You get 3 runs against Claude models using a shared server-side key.
 
-**Authenticated mode** — sign up, add your Anthropic and/or OpenAI API keys in the playground sidebar, select any combination of models, write your prompt, and run. Score each response, then save the run to history for later review.
+**Authenticated mode** — sign up, add your provider API keys in the playground sidebar (Anthropic, OpenAI, Google, Mistral, Groq, or xAI), select any combination of models, write your prompt, and run. Score each response, then save the run to history for later review.
+
+---
+
+## Supported Models
+
+| Provider | Models |
+|---|---|
+| Anthropic | Claude Opus 4.6, Claude Sonnet 4.6, Claude Haiku 4.5 |
+| OpenAI | GPT-4.1, GPT-4o, GPT-4o Mini, o3-mini |
+| Google | Gemini 2.0 Flash, Gemini 1.5 Pro |
+| Mistral | Mistral Large, Mistral Small |
+| Groq | Llama 3.3 70B, Llama 3.1 8B |
+| xAI | Grok 3, Grok 3 Mini |
+
+Demo mode is limited to Anthropic models using a shared server-side key.
 
 ---
 

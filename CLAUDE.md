@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **prompt-playground** — A multi-model LLM prompt testing tool. Run any prompt against multiple AI models simultaneously, compare responses side by side, score them, and save runs for later review. Includes a demo mode for unauthenticated visitors.
 
-**Stack:** Next.js 16 (App Router, TypeScript), Tailwind CSS v4, Supabase (auth + Postgres), Vercel, Anthropic SDK, OpenAI SDK.
+**Stack:** Next.js 16 (App Router, TypeScript), Tailwind CSS v4, Supabase (auth + Postgres), Vercel, Anthropic SDK, OpenAI SDK, Google Generative AI SDK.
 
 ## Commands
 
@@ -37,7 +37,7 @@ npm run lint       # ESLint
 - `lib/types.ts` — all shared TypeScript interfaces (`Run`, `ModelResponse`, `RunRequest`, `DemoSession`, etc.)
 - `lib/models.ts` — `SUPPORTED_MODELS` and `DEMO_MODELS` — single source of truth for model options
 - `lib/demo.ts` — demo session logic and rate limiting (sessionStorage-backed)
-- `lib/providers/anthropic.ts` and `lib/providers/openai.ts` — provider wrappers (uniform interface: model, system prompt, user message, API key → `{ response, latency_ms }`)
+- `lib/providers/` — one file per provider (anthropic, openai, google, mistral, groq, xai). Uniform interface: `(modelId, systemPrompt, userMessage, apiKey) → { response, latency_ms }`. Dispatched via `PROVIDER_MAP` in `api/run/route.ts` — adding a provider means adding one file and one entry to that map.
 - `lib/supabase/client.ts` — browser client (`createBrowserClient` from `@supabase/ssr`)
 - `lib/supabase/server.ts` — server client (`createServerClient`, reads/sets cookies via async Next.js `cookies()`)
 

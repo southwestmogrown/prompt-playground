@@ -3,8 +3,23 @@ import crypto from "crypto";
 import { createClient } from "@/lib/supabase/server";
 import { callAnthropic } from "@/lib/providers/anthropic";
 import { callOpenAI } from "@/lib/providers/openai";
+import { callGoogle } from "@/lib/providers/google";
+import { callMistral } from "@/lib/providers/mistral";
+import { callGroq } from "@/lib/providers/groq";
+import { callXAI } from "@/lib/providers/xai";
 import { SUPPORTED_MODELS, DEMO_MODELS } from "@/lib/models";
-import type { RunRequest, ModelResponse } from "@/lib/types";
+import type { RunRequest, ModelResponse, ProviderName } from "@/lib/types";
+
+type ProviderFn = (modelId: string, systemPrompt: string, userMessage: string, apiKey: string) => Promise<{ response: string; latency_ms: number }>;
+
+const PROVIDER_MAP: Record<ProviderName, ProviderFn> = {
+  anthropic: callAnthropic,
+  openai: callOpenAI,
+  google: callGoogle,
+  mistral: callMistral,
+  groq: callGroq,
+  xai: callXAI,
+};
 
 const rawDemoRunLimit = process.env.DEMO_RUN_LIMIT;
 const parsedDemoRunLimit = rawDemoRunLimit ? parseInt(rawDemoRunLimit, 10) : NaN;
@@ -51,10 +66,7 @@ async function callModel(
     return { model: modelId, response: "", score: null, latency_ms: 0, error: "Unknown model" };
   }
   try {
-    const result =
-      model.provider === "anthropic"
-        ? await callAnthropic(modelId, systemPrompt, userMessage, apiKey)
-        : await callOpenAI(modelId, systemPrompt, userMessage, apiKey);
+    const result = await PROVIDER_MAP[model.provider](modelId, systemPrompt, userMessage, apiKey);
     return { model: modelId, response: result.response, score: null, latency_ms: result.latency_ms };
   } catch (err) {
     return {

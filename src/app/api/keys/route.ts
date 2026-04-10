@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
   if (!provider || !apiKey) {
     return NextResponse.json({ error: "Missing fields" }, { status: 400 });
   }
-  if (!["anthropic", "openai"].includes(provider)) {
+  if (!["anthropic", "openai", "google", "mistral", "groq", "xai"].includes(provider)) {
     return NextResponse.json({ error: "Invalid provider" }, { status: 400 });
   }
 

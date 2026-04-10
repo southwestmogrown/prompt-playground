@@ -1,4 +1,4 @@
-export type ProviderName = "anthropic" | "openai";
+export type ProviderName = "anthropic" | "openai" | "google" | "mistral" | "groq" | "xai";
 
 export interface UserProfile {
   id: string;

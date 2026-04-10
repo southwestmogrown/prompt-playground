@@ -157,7 +157,7 @@ export default function LandingPage() {
             Ready to find your best model?
           </h2>
           <p className="text-[#8B949E] text-sm">
-            Start with the demo — no account needed. Upgrade when you're ready.
+            Start with the demo — no account needed. Upgrade when you&apos;re ready.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
             <Link

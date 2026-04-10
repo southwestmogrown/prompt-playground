@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import type { Run } from "@/lib/types";
 import { SUPPORTED_MODELS } from "@/lib/models";
+import { saveRestoreRun } from "@/lib/demo";
 
 interface RunCardProps {
   run: Run;
@@ -27,7 +29,13 @@ function modelName(id: string): string {
 }
 
 export default function RunCard({ run }: RunCardProps) {
+  const router = useRouter();
   const [expanded, setExpanded] = useState(false);
+
+  function handleOpenInPlayground() {
+    saveRestoreRun(run.system_prompt, run.user_message, run.models);
+    router.push("/playground");
+  }
 
   const bestScore = run.responses.reduce<number | null>((best, r) => {
     if (r.score === null) return best;
@@ -105,6 +113,14 @@ export default function RunCard({ run }: RunCardProps) {
                 </div>
               </div>
             ))}
+          </div>
+          <div className="flex justify-end pt-1">
+            <button
+              onClick={handleOpenInPlayground}
+              className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
+            >
+              Open in Playground →
+            </button>
           </div>
         </div>
       )}
