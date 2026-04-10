@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import SignupForm from "@/components/auth/SignupForm";
 
 export const metadata: Metadata = {
-  title: "Sign Up — Prism",
+  title: "Sign Up — Prism AI",
 };
 
 export default async function SignupPage() {

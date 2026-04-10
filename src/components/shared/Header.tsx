@@ -28,7 +28,7 @@ export default function Header({ userEmail, isDemo }: HeaderProps) {
           href={isDemo ? "/" : "/playground"}
           className="text-xl font-black tracking-tighter bg-gradient-to-r from-orange-400 to-amber-600 bg-clip-text text-transparent font-headline hover:opacity-85 transition-opacity"
         >
-          Prism
+          Prism AI
         </Link>
 
         {/* Desktop nav links — only for demo (authenticated gets sidebar) */}

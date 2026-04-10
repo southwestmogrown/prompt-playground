@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import type { ModelOption, ModelResponse, RunResult, ModelParams } from "@/lib/types";
+import type { ModelOption, ModelResponse, RunResult, ModelParams, ProviderName } from "@/lib/types";
 import { getDemoSession, incrementDemoRun, saveDraft, getDraft, clearDraft, getRestoreRun, clearRestoreRun } from "@/lib/demo";
 import { createClient } from "@/lib/supabase/client";
 import Header from "@/components/shared/Header";
@@ -73,6 +73,36 @@ export default function PlaygroundClient({
   const [runsUsed, setRunsUsed] = useState<number>(
     () => (isDemo ? getDemoSession()?.runsUsed ?? 0 : 0)
   );
+  const [storedProviders, setStoredProviders] = useState<ProviderName[]>([]);
+
+  // Fetch stored keys to determine which providers are available
+  useEffect(() => {
+    if (isDemo) return;
+    async function loadKeys() {
+      try {
+        const res = await fetch("/api/keys");
+        if (!res.ok) return;
+        const data = await res.json();
+        const providers = (data.keys ?? []).map((k: { provider: ProviderName }) => k.provider);
+        setStoredProviders(providers);
+      } catch { /* ignore */ }
+    }
+    loadKeys();
+  }, [isDemo]);
+
+  function handleKeysChange() {
+    // Re-fetch stored keys after KeyManager changes
+    async function loadKeys() {
+      try {
+        const res = await fetch("/api/keys");
+        if (!res.ok) return;
+        const data = await res.json();
+        const providers = (data.keys ?? []).map((k: { provider: ProviderName }) => k.provider);
+        setStoredProviders(providers);
+      } catch { /* ignore */ }
+    }
+    loadKeys();
+  }
   const limitReached = isDemo && runsUsed >= demoRunLimit;
   const modelMap = Object.fromEntries(models.map((m) => [m.id, m.name]));
 
@@ -238,6 +268,8 @@ export default function PlaygroundClient({
               {!isDemo && (
                 <TemplateSelector
                   systemPrompt={systemPrompt}
+                  userMessage={userMessage}
+                  selectedModels={selectedModels}
                   onLoad={(prompt) => setSystemPrompt(prompt)}
                 />
               )}
@@ -246,6 +278,7 @@ export default function PlaygroundClient({
                 models={models}
                 selected={selectedModels}
                 onChange={setSelectedModels}
+                availableProviders={storedProviders}
               />
 
               {error && (
@@ -279,7 +312,7 @@ export default function PlaygroundClient({
                 )}
               </button>
 
-              {!isDemo && <KeyManager />}
+              {!isDemo && <KeyManager onKeysChange={handleKeysChange} />}
             </div>
 
             {/* Right panel: responses */}

@@ -19,7 +19,11 @@ const PROVIDER_LABELS: Record<ProviderName, string> = {
   xai: "xAI",
 };
 
-export default function KeyManager() {
+interface KeyManagerProps {
+  onKeysChange?: () => void;
+}
+
+export default function KeyManager({ onKeysChange }: KeyManagerProps) {
   const [keys, setKeys] = useState<StoredKey[]>([]);
   const [provider, setProvider] = useState<ProviderName>("anthropic");
   const [apiKey, setApiKey] = useState("");
@@ -83,6 +87,7 @@ export default function KeyManager() {
       setApiKey("");
       setSuccess(`${PROVIDER_LABELS[provider]} key saved (…${data.key_hint})`);
       setRefreshKey((k) => k + 1);
+      onKeysChange?.();
     } catch {
       setError("Network error. Please try again.");
     } finally {
@@ -102,6 +107,7 @@ export default function KeyManager() {
       });
       if (res.ok) {
         setRefreshKey((k) => k + 1);
+        onKeysChange?.();
       } else {
         setError("Failed to remove key. Please try again.");
       }

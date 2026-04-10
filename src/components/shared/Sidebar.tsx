@@ -38,7 +38,7 @@ export default function Sidebar({ userEmail }: SidebarProps) {
         </div>
         <div>
           <p className="text-sm font-black tracking-tighter text-on-surface font-headline leading-tight">
-            Prism
+            Prism AI
           </p>
           <p className="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold leading-tight">
             Luminous Editor

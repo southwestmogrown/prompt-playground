@@ -8,7 +8,7 @@ export async function GET() {
 
   const { data, error } = await supabase
     .from("prompt_templates")
-    .select("id, name, system_prompt, created_at")
+    .select("id, name, system_prompt, user_message, models, created_at")
     .eq("user_id", user.id)
     .order("created_at", { ascending: true });
 
@@ -21,12 +21,12 @@ export async function POST(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { name, system_prompt } = await request.json();
+  const { name, system_prompt, user_message, models } = await request.json();
   if (!name?.trim()) return NextResponse.json({ error: "Name is required" }, { status: 400 });
 
   const { data, error } = await supabase
     .from("prompt_templates")
-    .insert({ user_id: user.id, name: name.trim(), system_prompt: system_prompt ?? "" })
+    .insert({ user_id: user.id, name: name.trim(), system_prompt: system_prompt ?? "", user_message: user_message ?? "", models: models ?? [] })
     .select("id, name")
     .single();
 
@@ -39,13 +39,13 @@ export async function PUT(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { id, name, system_prompt } = await request.json();
+  const { id, name, system_prompt, user_message, models } = await request.json();
   if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
   if (!name?.trim()) return NextResponse.json({ error: "Name is required" }, { status: 400 });
 
   const { error } = await supabase
     .from("prompt_templates")
-    .update({ name: name.trim(), system_prompt: system_prompt ?? "" })
+    .update({ name: name.trim(), system_prompt: system_prompt ?? "", user_message: user_message ?? "", models: models ?? [] })
     .eq("id", id)
     .eq("user_id", user.id);
 

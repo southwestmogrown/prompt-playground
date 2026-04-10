@@ -17,7 +17,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Prism — One prompt. Every model.",
+  title: "Prism AI — One prompt. Every model.",
   description:
     "Run any prompt across Claude, GPT-4, and more simultaneously. Compare responses side by side, score them, and save what matters.",
 };

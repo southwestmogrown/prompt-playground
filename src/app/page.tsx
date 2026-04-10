@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 export default function LandingPage() {
   return (
@@ -21,7 +22,7 @@ export default function LandingPage() {
               </span>
             </div>
             <span className="font-headline font-black tracking-tighter text-lg bg-gradient-to-r from-orange-500 to-amber-600 bg-clip-text text-transparent">
-              Prism
+              Prism AI
             </span>
           </div>
           <div className="flex items-center gap-3">
@@ -92,21 +93,41 @@ export default function LandingPage() {
 
           {/* Right — prism visual */}
           <div className="relative flex items-center justify-center lg:justify-end">
-            <div className="relative w-80 h-80">
+            <div className="relative w-96 h-96">
               {/* Glow behind */}
               <div className="absolute inset-0 rounded-[3rem] bg-gradient-to-br from-primary/20 to-tertiary-container/30 blur-3xl scale-110" />
               {/* Outer glass card */}
               <div className="absolute inset-0 glass-panel ghost-border rounded-[2.5rem] glass-gradient-border" />
               {/* Inner layers — refraction effect */}
-              <div className="absolute inset-6 glass-panel ghost-border rounded-[2rem] bg-white/50" />
-              <div className="absolute inset-12 glass-panel ghost-border rounded-[1.5rem] bg-white/60" />
+              <div className="absolute inset-6 glass-panel ghost-border rounded-[2rem] bg-white/50 overflow-hidden">
+                <Image
+                  src="/prism-hero-1.png"
+                  alt=""
+                  fill
+                  className="object-cover opacity-60"
+                  aria-hidden="true"
+                />
+              </div>
+              <div className="absolute inset-12 glass-panel ghost-border rounded-[1.5rem] bg-white/60 overflow-hidden">
+                <Image
+                  src="/prism-hero-1.png"
+                  alt=""
+                  fill
+                  className="object-cover opacity-80"
+                  aria-hidden="true"
+                />
+              </div>
               {/* Center icon */}
               <div className="absolute inset-0 flex items-center justify-center">
-                <img
-                  src="/prism-hero-1.png"
-                  alt="Prism"
-                  className="w-28 h-28 rounded-3xl object-cover shadow-[0_8px_32px_rgba(160,58,15,0.4)]"
-                />
+                <div className="w-28 h-28 rounded-3xl shadow-[0_8px_32px_rgba(160,58,15,0.4)] overflow-hidden">
+                  <Image
+                    src="/prism-hero-1.png"
+                    alt="Prism AI"
+                    width={112}
+                    height={112}
+                    className="object-cover"
+                  />
+                </div>
               </div>
               {/* Floating badges */}
               <div className="absolute -top-3 -right-3 glass-panel ghost-border rounded-2xl px-3 py-2 flex items-center gap-1.5 shadow-ambient">
@@ -315,11 +336,11 @@ export default function LandingPage() {
               <span className="material-symbols-outlined text-on-primary text-[12px]" style={{ fontVariationSettings: "'FILL' 1" }}>filter_vintage</span>
             </div>
             <span className="font-headline font-black text-sm bg-gradient-to-r from-orange-500 to-amber-600 bg-clip-text text-transparent">
-              Prism
+              Prism AI
             </span>
           </div>
           <p className="text-xs text-outline">
-            © {new Date().getFullYear()} Prism · Built for developers who care about output quality.
+            © {new Date().getFullYear()} Prism AI · Built for developers who care about output quality.
           </p>
           <div className="flex items-center gap-4 text-xs text-outline">
             <Link href="/login" className="hover:text-on-surface transition-colors">Sign in</Link>

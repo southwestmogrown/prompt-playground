@@ -6,15 +6,19 @@ interface Template {
   id: string;
   name: string;
   system_prompt: string;
+  user_message: string;
+  models: string[];
   created_at: string;
 }
 
 interface TemplateSelectorProps {
   systemPrompt: string;
+  userMessage: string;
+  selectedModels: string[];
   onLoad: (systemPrompt: string) => void;
 }
 
-export default function TemplateSelector({ systemPrompt, onLoad }: TemplateSelectorProps) {
+export default function TemplateSelector({ systemPrompt, userMessage, selectedModels, onLoad }: TemplateSelectorProps) {
   const [templates, setTemplates] = useState<Template[]>([]);
   const [refreshKey, setRefreshKey] = useState(0);
   const [selectedId, setSelectedId] = useState("");
@@ -26,6 +30,8 @@ export default function TemplateSelector({ systemPrompt, onLoad }: TemplateSelec
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
   const [editPrompt, setEditPrompt] = useState("");
+  const [editUserMessage, setEditUserMessage] = useState("");
+  const [editModels, setEditModels] = useState("");
   const [updating, setUpdating] = useState(false);
 
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -65,7 +71,7 @@ export default function TemplateSelector({ systemPrompt, onLoad }: TemplateSelec
       const res = await fetch("/api/templates", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: saveName.trim(), system_prompt: systemPrompt }),
+        body: JSON.stringify({ name: saveName.trim(), system_prompt: systemPrompt, user_message: userMessage, models: selectedModels }),
       });
       const data = await res.json();
       if (!res.ok) { setError(data.error ?? "Failed to save"); return; }
@@ -83,6 +89,8 @@ export default function TemplateSelector({ systemPrompt, onLoad }: TemplateSelec
     setEditingId(template.id);
     setEditName(template.name);
     setEditPrompt(template.system_prompt);
+    setEditUserMessage(template.user_message ?? "");
+    setEditModels((template.models ?? []).join(", "));
     setError(null);
   }
 
@@ -90,6 +98,8 @@ export default function TemplateSelector({ systemPrompt, onLoad }: TemplateSelec
     setEditingId(null);
     setEditName("");
     setEditPrompt("");
+    setEditUserMessage("");
+    setEditModels("");
   }
 
   async function handleUpdate(e: React.FormEvent) {
@@ -101,7 +111,13 @@ export default function TemplateSelector({ systemPrompt, onLoad }: TemplateSelec
       const res = await fetch("/api/templates", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: editingId, name: editName.trim(), system_prompt: editPrompt }),
+        body: JSON.stringify({
+          id: editingId,
+          name: editName.trim(),
+          system_prompt: editPrompt,
+          user_message: editUserMessage,
+          models: editModels.split(",").map((m) => m.trim()).filter(Boolean),
+        }),
       });
       const data = await res.json();
       if (!res.ok) { setError(data.error ?? "Failed to update"); return; }
@@ -173,8 +189,22 @@ export default function TemplateSelector({ systemPrompt, onLoad }: TemplateSelec
                     <textarea
                       value={editPrompt}
                       onChange={(e) => setEditPrompt(e.target.value)}
-                      rows={3}
+                      rows={2}
+                      placeholder="System prompt…"
                       className="w-full bg-surface-container-high ghost-border text-on-surface rounded-xl px-3 py-1.5 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-tertiary/30 transition-all resize-none"
+                    />
+                    <textarea
+                      value={editUserMessage}
+                      onChange={(e) => setEditUserMessage(e.target.value)}
+                      rows={2}
+                      placeholder="User message template…"
+                      className="w-full bg-surface-container-high ghost-border text-on-surface rounded-xl px-3 py-1.5 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-tertiary/30 transition-all resize-none"
+                    />
+                    <input
+                      value={editModels}
+                      onChange={(e) => setEditModels(e.target.value)}
+                      placeholder="Model IDs, comma-separated: claude-opus-4-6, gpt-4o"
+                      className="w-full bg-surface-container-high ghost-border text-on-surface placeholder-outline rounded-xl px-3 py-1.5 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-tertiary/30 transition-all"
                     />
                     <div className="flex gap-2">
                       <button

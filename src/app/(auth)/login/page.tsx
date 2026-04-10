@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import LoginForm from "@/components/auth/LoginForm";
 
 export const metadata: Metadata = {
-  title: "Sign In — Prism",
+  title: "Sign In — Prism AI",
 };
 
 export default async function LoginPage() {
@@ -24,7 +24,7 @@ export default async function LoginPage() {
             <span className="material-symbols-outlined text-on-primary text-[22px]" style={{ fontVariationSettings: "'FILL' 1" }}>filter_vintage</span>
           </div>
           <h1 className="font-headline font-extrabold text-3xl tracking-tighter text-on-surface">Welcome back</h1>
-          <p className="text-on-surface-variant text-sm">Sign in to your Prism account</p>
+          <p className="text-on-surface-variant text-sm">Sign in to your Prism AI account</p>
         </div>
         <LoginForm />
       </div>

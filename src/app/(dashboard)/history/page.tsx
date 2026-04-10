@@ -7,7 +7,7 @@ import RunList from "@/components/history/RunList";
 import type { Run } from "@/lib/types";
 
 export const metadata: Metadata = {
-  title: "History — Prism",
+  title: "History — Prism AI",
 };
 
 export default async function HistoryPage() {
