@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
 interface HeaderProps {
@@ -9,32 +9,9 @@ interface HeaderProps {
   isDemo?: boolean;
 }
 
-function PrismIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      className={className}
-      viewBox="0 0 40 40"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      aria-hidden="true"
-    >
-      <polygon
-        points="20,4 36,34 4,34"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinejoin="round"
-      />
-      <line x1="20" y1="4" x2="36" y2="34" stroke="#818cf8" strokeWidth="1.5" strokeOpacity="0.7" />
-      <line x1="20" y1="4" x2="28" y2="34" stroke="#a78bfa" strokeWidth="1.5" strokeOpacity="0.55" />
-      <line x1="20" y1="4" x2="4"  y2="34" stroke="#60a5fa" strokeWidth="1.5" strokeOpacity="0.7" />
-      <line x1="20" y1="4" x2="12" y2="34" stroke="#34d399" strokeWidth="1.5" strokeOpacity="0.55" />
-    </svg>
-  );
-}
-
 export default function Header({ userEmail, isDemo }: HeaderProps) {
   const router = useRouter();
+  const pathname = usePathname();
 
   async function handleSignOut() {
     const supabase = createClient();
@@ -44,62 +21,101 @@ export default function Header({ userEmail, isDemo }: HeaderProps) {
   }
 
   return (
-    <header className="border-b border-[#30363D] bg-[#0D1117]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-14">
-        <nav className="flex items-center gap-6">
-          <Link href={isDemo ? "/" : "/playground"} className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-            <PrismIcon className="w-6 h-6 text-[#E6EDF3]" />
-            <span className="text-sm font-semibold text-[#E6EDF3] tracking-tight">Prism</span>
-          </Link>
-          {!isDemo && (
-            <>
-              <Link
-                href="/playground"
-                className="text-sm text-[#8B949E] hover:text-[#E6EDF3] transition-colors"
-              >
-                Playground
-              </Link>
-              <Link
-                href="/history"
-                className="text-sm text-[#8B949E] hover:text-[#E6EDF3] transition-colors"
-              >
-                History
-              </Link>
-            </>
-          )}
-        </nav>
-        <div className="flex items-center gap-4">
-          {isDemo ? (
-            <>
-              <Link
-                href="/signup"
-                className="text-sm bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-1.5 rounded-md font-medium transition-colors"
-              >
-                Sign up free
-              </Link>
-              <Link
-                href="/login"
-                className="text-sm text-[#8B949E] hover:text-[#E6EDF3] transition-colors"
-              >
-                Sign in
-              </Link>
-            </>
-          ) : (
-            <>
-              {userEmail && (
-                <span className="text-sm text-[#484F58] hidden sm:block font-mono">
-                  {userEmail}
-                </span>
-              )}
-              <button
-                onClick={handleSignOut}
-                className="text-sm text-[#8B949E] hover:text-[#E6EDF3] transition-colors"
-              >
-                Sign out
-              </button>
-            </>
-          )}
-        </div>
+    <header className="w-full sticky top-0 z-50 bg-stone-50/60 backdrop-blur-xl ghost-border shadow-[0_8px_32px_0_rgba(255,127,80,0.08)] flex justify-between items-center px-6 h-16">
+      {/* Logo */}
+      <div className="flex items-center gap-6">
+        <Link
+          href={isDemo ? "/" : "/playground"}
+          className="text-xl font-black tracking-tighter bg-gradient-to-r from-orange-400 to-amber-600 bg-clip-text text-transparent font-headline hover:opacity-85 transition-opacity"
+        >
+          Prism
+        </Link>
+
+        {/* Desktop nav links — only for demo (authenticated gets sidebar) */}
+        {isDemo && (
+          <nav className="hidden md:flex items-center gap-5">
+            <Link
+              href="/playground?demo=true"
+              className="text-sm font-semibold text-on-surface-variant hover:text-on-surface transition-colors duration-200"
+            >
+              Demo
+            </Link>
+          </nav>
+        )}
+
+        {/* Authenticated top nav links on mobile (sidebar hidden) */}
+        {!isDemo && userEmail && (
+          <nav className="flex lg:hidden items-center gap-5">
+            <Link
+              href="/playground"
+              className={`text-sm font-semibold transition-colors duration-200 ${
+                pathname === "/playground"
+                  ? "text-orange-600 border-b-2 border-orange-500 pb-0.5"
+                  : "text-on-surface-variant hover:text-on-surface"
+              }`}
+            >
+              Playground
+            </Link>
+            <Link
+              href="/history"
+              className={`text-sm font-semibold transition-colors duration-200 ${
+                pathname === "/history"
+                  ? "text-orange-600 border-b-2 border-orange-500 pb-0.5"
+                  : "text-on-surface-variant hover:text-on-surface"
+              }`}
+            >
+              History
+            </Link>
+          </nav>
+        )}
+      </div>
+
+      {/* Right side */}
+      <div className="flex items-center gap-3">
+        {isDemo ? (
+          <>
+            <Link
+              href="/login"
+              className="text-sm font-semibold text-on-surface-variant hover:text-on-surface transition-colors duration-200"
+            >
+              Sign in
+            </Link>
+            <Link
+              href="/signup"
+              className="px-5 py-2 bg-gradient-to-r from-primary to-primary-container text-on-primary rounded-xl text-sm font-bold shadow-sm active:scale-95 transition-all duration-200"
+            >
+              Sign up free
+            </Link>
+          </>
+        ) : userEmail ? (
+          <>
+            <span className="hidden sm:block text-xs text-on-surface-variant font-medium truncate max-w-[180px]">
+              {userEmail}
+            </span>
+            <button
+              onClick={handleSignOut}
+              className="flex items-center gap-1.5 text-sm font-semibold text-on-surface-variant hover:text-on-surface transition-colors duration-200"
+            >
+              <span className="material-symbols-outlined text-base">logout</span>
+              <span className="hidden sm:inline">Sign out</span>
+            </button>
+          </>
+        ) : (
+          <>
+            <Link
+              href="/login"
+              className="text-sm font-semibold text-on-surface-variant hover:text-on-surface transition-colors duration-200"
+            >
+              Sign in
+            </Link>
+            <Link
+              href="/signup"
+              className="px-5 py-2 bg-gradient-to-r from-primary to-primary-container text-on-primary rounded-xl text-sm font-bold shadow-sm active:scale-95 transition-all duration-200"
+            >
+              Sign up free
+            </Link>
+          </>
+        )}
       </div>
     </header>
   );

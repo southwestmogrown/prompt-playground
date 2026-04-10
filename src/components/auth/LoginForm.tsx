@@ -31,14 +31,15 @@ export default function LoginForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="bg-[#161B22] border border-[#30363D] rounded-xl p-8 space-y-4">
+    <form onSubmit={handleSubmit} className="glass-panel ghost-border rounded-3xl p-8 space-y-5 shadow-ambient">
       {error && (
-        <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded text-sm">
+        <div className="bg-error/10 border border-error/20 text-error px-4 py-3 rounded-2xl text-sm flex items-center gap-2">
+          <span className="material-symbols-outlined text-[16px]">error</span>
           {error}
         </div>
       )}
-      <div>
-        <label htmlFor="email" className="block text-xs font-medium text-[#8B949E] uppercase tracking-wide mb-1.5">
+      <div className="space-y-1.5">
+        <label htmlFor="email" className="block text-xs font-bold text-on-surface-variant uppercase tracking-widest">
           Email
         </label>
         <input
@@ -47,11 +48,12 @@ export default function LoginForm() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
-          className="w-full border border-[#30363D] bg-[#0D1117] text-[#E6EDF3] placeholder-[#484F58] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          placeholder="you@example.com"
+          className="w-full bg-surface-container-high ghost-border rounded-2xl px-4 py-3 text-sm text-on-surface placeholder-outline focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-tertiary/30 transition-all"
         />
       </div>
-      <div>
-        <label htmlFor="password" className="block text-xs font-medium text-[#8B949E] uppercase tracking-wide mb-1.5">
+      <div className="space-y-1.5">
+        <label htmlFor="password" className="block text-xs font-bold text-on-surface-variant uppercase tracking-widest">
           Password
         </label>
         <input
@@ -60,19 +62,20 @@ export default function LoginForm() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
-          className="w-full border border-[#30363D] bg-[#0D1117] text-[#E6EDF3] placeholder-[#484F58] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          placeholder="••••••••"
+          className="w-full bg-surface-container-high ghost-border rounded-2xl px-4 py-3 text-sm text-on-surface placeholder-outline focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-tertiary/30 transition-all"
         />
       </div>
       <button
         type="submit"
         disabled={loading}
-        className="w-full bg-indigo-500 hover:bg-indigo-600 text-white py-2 px-4 rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        className="w-full text-on-primary py-3 px-4 rounded-2xl text-sm font-black disabled:opacity-50 disabled:cursor-not-allowed transition-all bg-gradient-to-r from-primary to-primary-container shadow-[0_8px_24px_rgba(160,58,15,0.3)] hover:shadow-[0_12px_32px_rgba(160,58,15,0.4)] hover:-translate-y-0.5"
       >
         {loading ? "Signing in…" : "Sign in"}
       </button>
-      <p className="text-center text-sm text-[#8B949E]">
+      <p className="text-center text-sm text-on-surface-variant">
         Don&apos;t have an account?{" "}
-        <Link href="/signup" className="text-indigo-400 hover:text-indigo-300 transition-colors">
+        <Link href="/signup" className="text-primary font-semibold hover:text-primary-container transition-colors">
           Sign up
         </Link>
       </p>

@@ -33,43 +33,67 @@ export default function ResponseCard({
       : null;
 
   return (
-    <div className="border border-[#30363D] bg-[#161B22] rounded-lg flex flex-col">
-      <div className="px-4 pt-2.5 pb-0 border-b border-[#30363D] bg-[#1E2330] rounded-t-lg">
-        <div className="flex items-center justify-between">
-          <span className="text-sm font-medium text-[#E6EDF3]">{modelName}</span>
-          <div className="flex items-center gap-2 font-mono text-xs">
+    <div className="group bg-surface-container-lowest/70 backdrop-blur-[40px] ghost-border rounded-[2rem] flex flex-col prism-glow hover:refractive-shadow transition-all duration-300">
+      {/* Header */}
+      <div className="px-5 pt-4 pb-0">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+              <span className="material-symbols-outlined text-primary text-[15px]" style={{ fontVariationSettings: "'FILL' 1" }}>
+                smart_toy
+              </span>
+            </div>
+            <div>
+              <p className="text-sm font-bold text-on-surface leading-tight">{modelName}</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
             {cost !== null && (
-              <span className="text-[#484F58]">~${cost < 0.0001 ? cost.toExponential(1) : cost.toFixed(4)}</span>
+              <span className="text-xs font-mono text-outline">
+                ~${cost < 0.0001 ? cost.toExponential(1) : cost.toFixed(4)}
+              </span>
             )}
             {isFastest && (
-              <span className="text-emerald-400 font-sans">Fastest</span>
+              <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-green-100 border border-green-200 text-green-700 flex items-center gap-1">
+                <span className="material-symbols-outlined text-[12px]" style={{ fontVariationSettings: "'FILL' 1" }}>bolt</span>
+                Fastest
+              </span>
             )}
-            <span className="text-[#484F58]">{response.latency_ms}ms</span>
+            <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary">
+              {response.latency_ms}ms
+            </span>
           </div>
         </div>
+
+        {/* Latency bar */}
         {barWidth !== null && (
-          <div className="h-[3px] bg-[#30363D] rounded-full overflow-hidden -mx-4 mt-2">
+          <div className="h-[3px] bg-surface-container rounded-full overflow-hidden mt-3 -mx-0">
             <div
-              className="h-full bg-indigo-500/60 rounded-full transition-all duration-500"
+              className="h-full bg-gradient-to-r from-primary to-primary-container rounded-full transition-all duration-700"
               style={{ width: `${barWidth}%` }}
             />
           </div>
         )}
+
+        <div className="border-t border-[rgba(174,173,170,0.10)] mt-3" />
       </div>
 
-      <div className="flex-1 px-4 py-3 min-h-[120px]">
+      {/* Response body */}
+      <div className="flex-1 px-5 py-4 min-h-[120px]">
         {response.error ? (
-          <p className="text-sm text-red-400 italic">{response.error}</p>
+          <p className="text-sm text-error italic">{response.error}</p>
         ) : (
-          <p className="text-sm text-[#E6EDF3] whitespace-pre-wrap leading-relaxed">
+          <p className="text-sm text-on-surface whitespace-pre-wrap leading-relaxed font-medium">
             {response.response}
           </p>
         )}
       </div>
 
+      {/* Score footer */}
       {!response.error && !isDemo && (
-        <div className="px-4 py-2.5 border-t border-[#30363D] flex items-center gap-2">
-          <span className="text-xs text-[#484F58]">Score:</span>
+        <div className="px-5 py-3 border-t border-[rgba(174,173,170,0.10)] flex items-center gap-2">
+          <span className="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Score</span>
           <ScoreInput value={score} onChange={onScore} />
         </div>
       )}

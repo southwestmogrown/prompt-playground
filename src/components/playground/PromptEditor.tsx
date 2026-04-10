@@ -15,32 +15,43 @@ export default function PromptEditor({
 }: PromptEditorProps) {
   return (
     <div className="space-y-3">
-      <div>
-        <label className="block text-xs font-medium text-[#8B949E] mb-1 uppercase tracking-wide">
-          System prompt{" "}
-          <span className="normal-case font-normal text-[#484F58]">(optional)</span>
-        </label>
-        <textarea
-          rows={3}
-          placeholder="You are a helpful assistant…"
-          value={systemPrompt}
-          onChange={(e) => onSystemPromptChange(e.target.value)}
-          disabled={disabled}
-          className="w-full border border-[#30363D] bg-[#161B22] text-[#E6EDF3] placeholder-[#484F58] rounded-lg px-3 py-2 text-sm resize-y focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 font-mono"
-        />
-      </div>
-      <div>
-        <label className="block text-xs font-medium text-[#8B949E] mb-1 uppercase tracking-wide">
-          User message <span className="text-red-400 normal-case font-normal">*</span>
-        </label>
-        <textarea
-          rows={5}
-          placeholder="Enter your prompt here…"
-          value={userMessage}
-          onChange={(e) => onUserMessageChange(e.target.value)}
-          disabled={disabled}
-          className="w-full border border-[#30363D] bg-[#161B22] text-[#E6EDF3] placeholder-[#484F58] rounded-lg px-3 py-2 text-sm resize-y focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 font-mono"
-        />
+      <div className="group relative">
+        <div className="absolute -inset-1 bg-gradient-to-r from-primary/15 via-secondary/10 to-tertiary/15 rounded-[1.75rem] blur-xl opacity-30 group-focus-within:opacity-70 transition-opacity duration-500 pointer-events-none" />
+        <div className="relative glass-panel ghost-border rounded-[1.5rem] overflow-hidden">
+          {/* System prompt */}
+          <div className="px-4 pt-4 pb-2">
+            <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-2">
+              System prompt{" "}
+              <span className="normal-case font-normal text-outline">(optional)</span>
+            </label>
+            <textarea
+              rows={3}
+              placeholder="You are a helpful assistant…"
+              value={systemPrompt}
+              onChange={(e) => onSystemPromptChange(e.target.value)}
+              disabled={disabled}
+              className="w-full bg-transparent border-none text-on-surface placeholder-outline text-sm resize-none focus:outline-none disabled:opacity-50 leading-relaxed"
+            />
+          </div>
+
+          {/* Divider */}
+          <div className="mx-4 border-t border-[rgba(174,173,170,0.12)]" />
+
+          {/* User message */}
+          <div className="px-4 py-3">
+            <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-2">
+              User message <span className="text-primary normal-case font-normal">*</span>
+            </label>
+            <textarea
+              rows={6}
+              placeholder="Enter your prompt here…"
+              value={userMessage}
+              onChange={(e) => onUserMessageChange(e.target.value)}
+              disabled={disabled}
+              className="w-full bg-transparent border-none text-on-surface placeholder-outline text-sm resize-none focus:outline-none disabled:opacity-50 leading-relaxed"
+            />
+          </div>
+        </div>
       </div>
     </div>
   );

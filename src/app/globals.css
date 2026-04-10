@@ -1,19 +1,185 @@
 @import "tailwindcss";
 
-:root {
-  --background: #0D1117;
-  --foreground: #E6EDF3;
-}
-
+/* ─────────────────────────────────────────────
+   Luminous Refraction — Spectral Design Tokens
+   ───────────────────────────────────────────── */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* Fonts */
+  --font-headline: var(--font-manrope), sans-serif;
+  --font-body: var(--font-inter), sans-serif;
+  --font-label: var(--font-inter), sans-serif;
+
+  /* Primary — burnt orange / coral */
+  --color-primary: #a03a0f;
+  --color-primary-dim: #902e02;
+  --color-primary-container: #fe7e4f;
+  --color-on-primary: #ffefeb;
+  --color-on-primary-container: #491300;
+  --color-primary-fixed: #fe7e4f;
+  --color-primary-fixed-dim: #ed7244;
+
+  /* Secondary — violet / lavender */
+  --color-secondary: #6a3cc9;
+  --color-secondary-dim: #5e2dbd;
+  --color-secondary-container: #dbc9ff;
+  --color-secondary-fixed: #dbc9ff;
+  --color-secondary-fixed-dim: #ceb9ff;
+  --color-on-secondary: #f8f0ff;
+  --color-on-secondary-container: #5521b4;
+  --color-on-secondary-fixed: #41009a;
+  --color-on-secondary-fixed-variant: #5f2ebe;
+
+  /* Tertiary — gold / amber */
+  --color-tertiary: #765600;
+  --color-tertiary-dim: #674b00;
+  --color-tertiary-container: #ffbf00;
+  --color-tertiary-fixed: #ffbf00;
+  --color-tertiary-fixed-dim: #eeb200;
+  --color-on-tertiary: #fff1db;
+  --color-on-tertiary-container: #563e00;
+  --color-on-tertiary-fixed: #3d2b00;
+  --color-on-tertiary-fixed-variant: #614700;
+
+  /* Surface hierarchy — warm cream */
+  --color-surface: #f8f6f2;
+  --color-surface-bright: #f8f6f2;
+  --color-surface-dim: #d5d4d0;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f2f1ec;
+  --color-surface-container: #e9e8e4;
+  --color-surface-container-high: #e4e2de;
+  --color-surface-container-highest: #deddd8;
+  --color-surface-variant: #deddd8;
+  --color-surface-tint: #a03a0f;
+
+  /* On-surface text */
+  --color-on-surface: #2e2f2d;
+  --color-on-surface-variant: #5b5c59;
+  --color-on-background: #2e2f2d;
+
+  /* Outlines */
+  --color-outline: #777774;
+  --color-outline-variant: #aeadaa;
+
+  /* Background */
+  --color-background: #f8f6f2;
+
+  /* Inverse */
+  --color-inverse-surface: #0e0e0d;
+  --color-inverse-on-surface: #9e9d99;
+  --color-inverse-primary: #fe7e4f;
+
+  /* Error */
+  --color-error: #b31b25;
+  --color-error-dim: #9f0519;
+  --color-error-container: #fb5151;
+  --color-on-error: #ffefee;
+  --color-on-error-container: #570008;
 }
 
+/* ─────────────────────────────────────────────
+   Base
+   ───────────────────────────────────────────── */
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  font-family: var(--font-inter), system-ui, sans-serif;
+  background: #f8f6f2;
+  color: #2e2f2d;
+}
+
+/* ─────────────────────────────────────────────
+   Material Symbols icon variation settings
+   ───────────────────────────────────────────── */
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  font-size: 1.25rem;
+  line-height: 1;
+  user-select: none;
+}
+
+/* ─────────────────────────────────────────────
+   Glassmorphism utilities
+   ───────────────────────────────────────────── */
+
+/* Frosted glass panel */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.70);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+
+/* Ghost border — barely-there catch-light */
+.ghost-border {
+  border: 1px solid rgba(174, 173, 170, 0.15);
+}
+
+/* Refractive shadow — tinted with primary coral */
+.refractive-shadow {
+  box-shadow: 0 25px 50px -12px rgba(254, 126, 79, 0.15);
+}
+
+/* Ambient glow — used for floating cards */
+.prism-glow {
+  box-shadow: 0 8px 32px 0 rgba(255, 127, 80, 0.12);
+}
+
+/* Diffuse ambient shadow (on-surface tinted) */
+.shadow-ambient {
+  box-shadow: 0px 20px 40px rgba(48, 46, 43, 0.06);
+}
+
+/* Gradient border using ::before mask trick */
+.glass-gradient-border {
+  position: relative;
+}
+.glass-gradient-border::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(
+    to bottom right,
+    rgba(254, 126, 79, 0.40),
+    rgba(255, 191, 0, 0.10),
+    rgba(106, 60, 201, 0.20)
+  );
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* ─────────────────────────────────────────────
+   Mesh gradient background
+   ───────────────────────────────────────────── */
+.bg-mesh {
+  background-color: #f8f6f2;
+  background-image:
+    radial-gradient(at 0% 0%,    rgba(254, 126, 79, 0.10) 0px, transparent 50%),
+    radial-gradient(at 100% 0%,  rgba(106, 60, 201, 0.10) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(255, 191, 0, 0.10) 0px, transparent 50%),
+    radial-gradient(at 0% 100%,  rgba(237, 114, 68, 0.05) 0px, transparent 50%);
+}
+
+/* ─────────────────────────────────────────────
+   Prompt editor focus glow
+   ───────────────────────────────────────────── */
+.prompt-glow {
+  position: absolute;
+  inset: -4px;
+  border-radius: 2rem;
+  background: linear-gradient(
+    to right,
+    rgba(160, 58, 15, 0.20),
+    rgba(106, 60, 201, 0.10),
+    rgba(118, 86, 0, 0.20)
+  );
+  filter: blur(16px);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+.prompt-wrapper:focus-within .prompt-glow {
+  opacity: 1;
 }

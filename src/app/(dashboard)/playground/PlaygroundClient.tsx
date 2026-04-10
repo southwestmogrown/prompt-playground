@@ -6,6 +6,7 @@ import type { ModelOption, ModelResponse, RunResult, ModelParams } from "@/lib/t
 import { getDemoSession, incrementDemoRun, saveDraft, getDraft, clearDraft, getRestoreRun, clearRestoreRun } from "@/lib/demo";
 import { createClient } from "@/lib/supabase/client";
 import Header from "@/components/shared/Header";
+import Sidebar from "@/components/shared/Sidebar";
 import DemoBanner from "@/components/shared/DemoBanner";
 import KeyManager from "@/components/shared/KeyManager";
 import ModelSelector from "@/components/playground/ModelSelector";
@@ -48,7 +49,6 @@ export default function PlaygroundClient({
   const [showExport, setShowExport] = useState(false);
   const [modelParams] = useState<Record<string, ModelParams>>({});
 
-  // Restore state from a previous draft (pre-signup) or from history "Open in Playground"
   useEffect(() => {
     if (!isDemo) {
       const restore = getRestoreRun();
@@ -74,7 +74,6 @@ export default function PlaygroundClient({
     () => (isDemo ? getDemoSession()?.runsUsed ?? 0 : 0)
   );
   const limitReached = isDemo && runsUsed >= demoRunLimit;
-
   const modelMap = Object.fromEntries(models.map((m) => [m.id, m.name]));
 
   function handleSignUp() {
@@ -135,8 +134,6 @@ export default function PlaygroundClient({
         return;
       }
 
-      // Increment only after a confirmed successful response so a network error
-      // or server misconfiguration doesn't silently consume a demo run.
       if (isDemo) {
         const updated = incrementDemoRun();
         setRunsUsed(updated.runsUsed);
@@ -180,7 +177,13 @@ export default function PlaygroundClient({
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#0D1117]">
+    <div className="min-h-screen bg-mesh text-on-surface">
+      {/* Ambient orbs */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
+        <div className="absolute -top-40 -left-40 w-[500px] h-[500px] rounded-full bg-primary/6 blur-[120px]" />
+        <div className="absolute top-1/2 -right-60 w-[400px] h-[400px] rounded-full bg-secondary/6 blur-[100px]" />
+      </div>
+
       <Header userEmail={userEmail} isDemo={isDemo} />
 
       {isDemo && (
@@ -192,217 +195,270 @@ export default function PlaygroundClient({
         />
       )}
 
-      <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left panel: inputs */}
-          <div className="lg:col-span-1 space-y-4">
-            <h1 className="text-lg font-semibold text-[#E6EDF3] tracking-tight">Playground</h1>
+      {!isDemo && <Sidebar userEmail={userEmail} />}
 
-            <PersonaSelector
-              systemPrompt={systemPrompt}
-              onLoad={(prompt) => setSystemPrompt(prompt)}
-            />
+      <main className={`relative ${!isDemo ? "lg:ml-72" : ""} px-4 sm:px-6 py-6 pb-16`}>
+        <div className="max-w-7xl mx-auto">
 
-            <PromptEditor
-              systemPrompt={systemPrompt}
-              userMessage={userMessage}
-              onSystemPromptChange={setSystemPrompt}
-              onUserMessageChange={setUserMessage}
-              disabled={loading}
-            />
+          {/* Page header */}
+          <div className="mb-6 flex items-center justify-between">
+            <div>
+              <h1 className="font-headline font-extrabold tracking-tighter text-3xl text-on-surface">
+                Playground
+              </h1>
+              <p className="text-on-surface-variant text-sm mt-0.5">
+                Run any prompt across multiple models simultaneously
+              </p>
+            </div>
+          </div>
 
-            <InjectionPanel
-              onInject={setUserMessage}
-              onInjectAndRun={handleRunWithMessage}
-              loading={loading}
-            />
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Left panel */}
+            <div className="lg:col-span-1 space-y-4">
 
-            {!isDemo && (
-              <TemplateSelector
+              <PersonaSelector
                 systemPrompt={systemPrompt}
                 onLoad={(prompt) => setSystemPrompt(prompt)}
               />
-            )}
 
-            <ModelSelector
-              models={models}
-              selected={selectedModels}
-              onChange={setSelectedModels}
-            />
+              <PromptEditor
+                systemPrompt={systemPrompt}
+                userMessage={userMessage}
+                onSystemPromptChange={setSystemPrompt}
+                onUserMessageChange={setUserMessage}
+                disabled={loading}
+              />
 
-            {error && (
-              <p className="text-sm text-red-400 bg-red-500/10 border border-red-500/20 rounded px-3 py-2">
-                {error}
-              </p>
-            )}
+              <InjectionPanel
+                onInject={setUserMessage}
+                onInjectAndRun={handleRunWithMessage}
+                loading={loading}
+              />
 
-            <button
-              onClick={handleRun}
-              disabled={loading || (isDemo && limitReached)}
-              className="w-full bg-indigo-500 hover:bg-indigo-600 text-white py-2 px-4 rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              {loading ? "Running…" : isDemo && limitReached ? "Demo limit reached" : "Run"}
-            </button>
+              {!isDemo && (
+                <TemplateSelector
+                  systemPrompt={systemPrompt}
+                  onLoad={(prompt) => setSystemPrompt(prompt)}
+                />
+              )}
 
-            {!isDemo && <KeyManager />}
-          </div>
+              <ModelSelector
+                models={models}
+                selected={selectedModels}
+                onChange={setSelectedModels}
+              />
 
-          {/* Right panel: responses */}
-          <div className="lg:col-span-2">
-            {loading && (
-              <div className="flex items-center justify-center h-40 text-[#484F58] text-sm">
-                Waiting for responses…
-              </div>
-            )}
-
-            {!loading && responses.length === 0 && (
-              <div className="flex items-center justify-center h-40 text-[#484F58] text-sm border-2 border-dashed border-[#30363D] rounded-lg">
-                Responses will appear here
-              </div>
-            )}
-
-            {responses.length > 0 && (
-              <div className="space-y-4">
-                {/* Action bar */}
-                <div className="flex items-center gap-3 flex-wrap">
-                  {!isDemo && (
-                    <button
-                      onClick={handleSave}
-                      disabled={saving || saved}
-                      className="bg-emerald-600 hover:bg-emerald-700 text-white py-1.5 px-4 rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    >
-                      {saving ? "Saving…" : saved ? "Saved ✓" : "Save Run"}
-                    </button>
-                  )}
-
-                  <button
-                    onClick={() => setShowExport(true)}
-                    className="py-1.5 px-4 rounded-lg text-sm font-medium border border-[#30363D] text-[#8B949E] hover:text-[#E6EDF3] hover:border-[#484F58] transition-colors"
-                  >
-                    Export
-                  </button>
-
-                  {/* Diff controls — only for non-errored responses */}
-                  {responses.filter((r) => !r.error).length >= 2 && (
-                    <>
-                      {diffMode === "off" && (
-                        <button
-                          onClick={() => {
-                            if (responses.filter((r) => !r.error).length === 2) {
-                              setDiffMode("viewing");
-                            } else {
-                              setDiffMode("selecting");
-                              setDiffSelections([]);
-                            }
-                          }}
-                          className="py-1.5 px-4 rounded-lg text-sm font-medium border border-[#30363D] text-[#8B949E] hover:text-[#E6EDF3] hover:border-[#484F58] transition-colors"
-                        >
-                          Compare
-                        </button>
-                      )}
-                      {(diffMode === "selecting" || diffMode === "viewing") && (
-                        <button
-                          onClick={() => { setDiffMode("off"); setDiffSelections([]); }}
-                          className="py-1.5 px-4 rounded-lg text-sm font-medium border border-[#30363D] text-[#8B949E] hover:text-[#E6EDF3] hover:border-[#484F58] transition-colors"
-                        >
-                          {diffMode === "selecting" ? "Cancel" : "Exit Compare"}
-                        </button>
-                      )}
-                      {diffMode === "selecting" && (
-                        <span className="text-xs text-[#484F58]">
-                          {diffSelections.length === 0
-                            ? "Select two responses to compare"
-                            : "Select one more"}
-                        </span>
-                      )}
-                    </>
-                  )}
-
-                  {saveError && <p className="text-sm text-red-400">{saveError}</p>}
+              {error && (
+                <div className="flex items-center gap-2 bg-error/10 border border-error/20 text-error rounded-2xl px-4 py-3 text-sm">
+                  <span className="material-symbols-outlined text-[16px]">error</span>
+                  {error}
                 </div>
+              )}
 
-                {/* Diff view */}
-                {diffMode === "viewing" && (() => {
-                  const validResponses = responses.filter((r) => !r.error);
-                  const [l, r] =
-                    diffSelections.length === 2
-                      ? [
-                          validResponses.find((x) => x.model === diffSelections[0])!,
-                          validResponses.find((x) => x.model === diffSelections[1])!,
-                        ]
-                      : [validResponses[0], validResponses[1]];
-                  return (
-                    <DiffView
-                      left={l}
-                      right={r}
-                      leftName={modelMap[l.model] ?? l.model}
-                      rightName={modelMap[r.model] ?? r.model}
-                    />
-                  );
-                })()}
+              {/* Execute Run button */}
+              <button
+                onClick={handleRun}
+                disabled={loading || (isDemo && limitReached)}
+                className="w-full inline-flex items-center justify-center gap-2 text-on-primary py-3.5 px-6 rounded-2xl font-black disabled:opacity-50 disabled:cursor-not-allowed transition-all bg-gradient-to-r from-primary to-primary-container shadow-[0_10px_30px_rgba(160,58,15,0.3)] hover:shadow-[0_15px_40px_rgba(160,58,15,0.4)] hover:-translate-y-0.5 text-base"
+              >
+                {loading ? (
+                  <>
+                    <span className="material-symbols-outlined text-[18px] animate-spin">progress_activity</span>
+                    Running…
+                  </>
+                ) : isDemo && limitReached ? (
+                  <>
+                    <span className="material-symbols-outlined text-[18px]">block</span>
+                    Demo limit reached
+                  </>
+                ) : (
+                  <>
+                    <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>play_arrow</span>
+                    Execute Run
+                  </>
+                )}
+              </button>
 
-                {/* Normal response grid */}
-                {diffMode !== "viewing" && (() => {
-                  const successfulResponses = responses.filter((r) => !r.error && r.latency_ms > 0);
-                  const minLatency = successfulResponses.length
-                    ? Math.min(...successfulResponses.map((r) => r.latency_ms))
-                    : 0;
-                  const showLatencyBars = successfulResponses.length > 1;
+              {!isDemo && <KeyManager />}
+            </div>
 
-                  return (
-                    <div
-                      className={`grid gap-4 ${
-                        responses.length === 1 ? "grid-cols-1" : "grid-cols-1 sm:grid-cols-2"
-                      }`}
+            {/* Right panel: responses */}
+            <div className="lg:col-span-2">
+              {loading && (
+                <div className="flex flex-col items-center justify-center h-60 glass-panel ghost-border rounded-3xl gap-3">
+                  <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center">
+                    <span className="material-symbols-outlined text-primary text-[24px] animate-spin">progress_activity</span>
+                  </div>
+                  <p className="text-on-surface-variant text-sm font-medium">Waiting for responses…</p>
+                </div>
+              )}
+
+              {!loading && responses.length === 0 && (
+                <div className="flex flex-col items-center justify-center h-60 ghost-border border-2 border-dashed rounded-3xl gap-3 bg-surface-container-lowest/20">
+                  <div className="w-12 h-12 rounded-2xl bg-surface-container flex items-center justify-center">
+                    <span className="material-symbols-outlined text-outline text-[24px]">chat_bubble_outline</span>
+                  </div>
+                  <p className="text-outline text-sm">Responses will appear here</p>
+                </div>
+              )}
+
+              {responses.length > 0 && (
+                <div className="space-y-4">
+                  {/* Action bar */}
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {!isDemo && (
+                      <button
+                        onClick={handleSave}
+                        disabled={saving || saved}
+                        className={`inline-flex items-center gap-1.5 py-2 px-4 rounded-xl text-sm font-bold transition-all ${
+                          saved
+                            ? "bg-green-100 border border-green-200 text-green-700"
+                            : "glass-panel ghost-border text-on-surface hover:-translate-y-0.5"
+                        } disabled:opacity-50 disabled:cursor-not-allowed`}
+                      >
+                        <span className="material-symbols-outlined text-[15px]" style={{ fontVariationSettings: saved ? "'FILL' 1" : "'FILL' 0" }}>
+                          {saved ? "check_circle" : "save"}
+                        </span>
+                        {saving ? "Saving…" : saved ? "Saved" : "Save Run"}
+                      </button>
+                    )}
+
+                    <button
+                      onClick={() => setShowExport(true)}
+                      className="inline-flex items-center gap-1.5 glass-panel ghost-border text-on-surface py-2 px-4 rounded-xl text-sm font-bold hover:-translate-y-0.5 transition-all"
                     >
-                      {responses.map((r) => {
-                        const isSelected = diffSelections.includes(r.model);
-                        const isSelectable = diffMode === "selecting" && !r.error;
-                        const isDisabledByLimit = diffMode === "selecting" && diffSelections.length === 2 && !isSelected;
+                      <span className="material-symbols-outlined text-[15px]">download</span>
+                      Export
+                    </button>
 
-                        function handleDiffSelect() {
-                          if (!isSelectable || isDisabledByLimit) return;
-                          setDiffSelections((prev) => {
-                            const next = isSelected
-                              ? prev.filter((id) => id !== r.model)
-                              : [...prev, r.model];
-                            if (next.length === 2) setDiffMode("viewing");
-                            return next;
-                          });
-                        }
-
-                        return (
-                          <div
-                            key={r.model}
-                            onClick={isSelectable && !isDisabledByLimit ? handleDiffSelect : undefined}
-                            className={
-                              isSelectable
-                                ? isDisabledByLimit
-                                  ? "opacity-40 cursor-not-allowed"
-                                  : isSelected
-                                    ? "cursor-pointer ring-2 ring-indigo-500 rounded-lg"
-                                    : "cursor-pointer hover:ring-2 hover:ring-[#484F58] rounded-lg"
-                                : ""
-                            }
+                    {responses.filter((r) => !r.error).length >= 2 && (
+                      <>
+                        {diffMode === "off" && (
+                          <button
+                            onClick={() => {
+                              if (responses.filter((r) => !r.error).length === 2) {
+                                setDiffMode("viewing");
+                              } else {
+                                setDiffMode("selecting");
+                                setDiffSelections([]);
+                              }
+                            }}
+                            className="inline-flex items-center gap-1.5 glass-panel ghost-border text-on-surface py-2 px-4 rounded-xl text-sm font-bold hover:-translate-y-0.5 transition-all"
                           >
-                            <ResponseCard
-                              response={r}
-                              modelName={modelMap[r.model] ?? r.model}
-                              score={scores[r.model] ?? null}
-                              onScore={(s) => setScores((prev) => ({ ...prev, [r.model]: s }))}
-                              isDemo={isDemo}
-                              inputText={systemPrompt ? `${systemPrompt}\n${userMessage}` : userMessage}
-                              minLatency={showLatencyBars ? minLatency : undefined}
-                              isFastest={showLatencyBars && r.latency_ms === minLatency && !r.error}
-                            />
-                          </div>
-                        );
-                      })}
-                    </div>
-                  );
-                })()}
-              </div>
-            )}
+                            <span className="material-symbols-outlined text-[15px]">compare</span>
+                            Compare
+                          </button>
+                        )}
+                        {(diffMode === "selecting" || diffMode === "viewing") && (
+                          <button
+                            onClick={() => { setDiffMode("off"); setDiffSelections([]); }}
+                            className="inline-flex items-center gap-1.5 glass-panel ghost-border text-on-surface py-2 px-4 rounded-xl text-sm font-bold hover:-translate-y-0.5 transition-all"
+                          >
+                            <span className="material-symbols-outlined text-[15px]">close</span>
+                            {diffMode === "selecting" ? "Cancel" : "Exit Compare"}
+                          </button>
+                        )}
+                        {diffMode === "selecting" && (
+                          <span className="text-xs text-outline">
+                            {diffSelections.length === 0
+                              ? "Select two responses to compare"
+                              : "Select one more"}
+                          </span>
+                        )}
+                      </>
+                    )}
+
+                    {saveError && (
+                      <p className="text-sm text-error flex items-center gap-1.5">
+                        <span className="material-symbols-outlined text-[14px]">error</span>
+                        {saveError}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Diff view */}
+                  {diffMode === "viewing" && (() => {
+                    const validResponses = responses.filter((r) => !r.error);
+                    const [l, r] =
+                      diffSelections.length === 2
+                        ? [
+                            validResponses.find((x) => x.model === diffSelections[0])!,
+                            validResponses.find((x) => x.model === diffSelections[1])!,
+                          ]
+                        : [validResponses[0], validResponses[1]];
+                    return (
+                      <DiffView
+                        left={l}
+                        right={r}
+                        leftName={modelMap[l.model] ?? l.model}
+                        rightName={modelMap[r.model] ?? r.model}
+                      />
+                    );
+                  })()}
+
+                  {/* Normal response grid */}
+                  {diffMode !== "viewing" && (() => {
+                    const successfulResponses = responses.filter((r) => !r.error && r.latency_ms > 0);
+                    const minLatency = successfulResponses.length
+                      ? Math.min(...successfulResponses.map((r) => r.latency_ms))
+                      : 0;
+                    const showLatencyBars = successfulResponses.length > 1;
+
+                    return (
+                      <div
+                        className={`grid gap-4 ${
+                          responses.length === 1 ? "grid-cols-1" : "grid-cols-1 sm:grid-cols-2"
+                        }`}
+                      >
+                        {responses.map((r) => {
+                          const isSelected = diffSelections.includes(r.model);
+                          const isSelectable = diffMode === "selecting" && !r.error;
+                          const isDisabledByLimit = diffMode === "selecting" && diffSelections.length === 2 && !isSelected;
+
+                          function handleDiffSelect() {
+                            if (!isSelectable || isDisabledByLimit) return;
+                            setDiffSelections((prev) => {
+                              const next = isSelected
+                                ? prev.filter((id) => id !== r.model)
+                                : [...prev, r.model];
+                              if (next.length === 2) setDiffMode("viewing");
+                              return next;
+                            });
+                          }
+
+                          return (
+                            <div
+                              key={r.model}
+                              onClick={isSelectable && !isDisabledByLimit ? handleDiffSelect : undefined}
+                              className={
+                                isSelectable
+                                  ? isDisabledByLimit
+                                    ? "opacity-40 cursor-not-allowed"
+                                    : isSelected
+                                      ? "cursor-pointer ring-2 ring-primary/60 rounded-[2rem]"
+                                      : "cursor-pointer hover:ring-2 hover:ring-outline/40 rounded-[2rem]"
+                                  : ""
+                              }
+                            >
+                              <ResponseCard
+                                response={r}
+                                modelName={modelMap[r.model] ?? r.model}
+                                score={scores[r.model] ?? null}
+                                onScore={(s) => setScores((prev) => ({ ...prev, [r.model]: s }))}
+                                isDemo={isDemo}
+                                inputText={systemPrompt ? `${systemPrompt}\n${userMessage}` : userMessage}
+                                minLatency={showLatencyBars ? minLatency : undefined}
+                                isFastest={showLatencyBars && r.latency_ms === minLatency && !r.error}
+                              />
+                            </div>
+                          );
+                        })}
+                      </div>
+                    );
+                  })()}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </main>

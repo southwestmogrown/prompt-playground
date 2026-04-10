@@ -16,18 +16,18 @@ export default function ModelSelector({ models, selected, onChange }: ModelSelec
   }
 
   return (
-    <div className="space-y-2">
-      <p className="text-xs font-medium text-[#8B949E] uppercase tracking-wide">Models</p>
-      <div className="flex flex-wrap gap-2">
+    <div className="space-y-2.5">
+      <p className="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Models</p>
+      <div className="flex bg-surface-container-low/50 backdrop-blur-md ghost-border rounded-2xl p-1.5 flex-wrap gap-1">
         {models.map((model) => {
           const checked = selected.includes(model.id);
           return (
             <label
               key={model.id}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-sm cursor-pointer select-none transition-colors ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs cursor-pointer select-none transition-all duration-200 ${
                 checked
-                  ? "bg-indigo-500/10 border-indigo-500/50 text-indigo-300"
-                  : "bg-[#161B22] border-[#30363D] text-[#8B949E] hover:border-[#484F58] hover:text-[#E6EDF3]"
+                  ? "bg-surface-container-lowest shadow-sm text-on-surface font-bold"
+                  : "text-on-surface-variant hover:text-on-surface font-medium"
               }`}
             >
               <input

@@ -38,10 +38,8 @@ export default function InjectionPanel({
     setRunningAll(true);
     for (const test of filtered) {
       onInject(test.message);
-      // Trigger run and wait a tick between runs so state settles
       await new Promise<void>((resolve) => {
         onInjectAndRun(test.message);
-        // Small delay to avoid overwhelming the API
         setTimeout(resolve, 500);
       });
     }
@@ -49,39 +47,44 @@ export default function InjectionPanel({
   }
 
   const categoryColor: Record<string, string> = {
-    "Instruction Override": "text-orange-400",
-    "Prompt Leak": "text-yellow-400",
-    "Role Confusion": "text-purple-400",
-    Jailbreak: "text-red-400",
+    "Instruction Override": "text-[#d97706]",
+    "Prompt Leak": "text-[#765600]",
+    "Role Confusion": "text-secondary",
+    Jailbreak: "text-error",
   };
 
   return (
-    <div className="border border-[#30363D] rounded-lg overflow-hidden">
+    <div className="glass-panel ghost-border rounded-2xl overflow-hidden">
       <button
         onClick={() => setOpen((o) => !o)}
-        className="w-full px-4 py-3 flex items-center justify-between bg-[#1E2330] hover:bg-[#252D3D] transition-colors"
+        className="w-full px-4 py-3 flex items-center justify-between hover:bg-surface-container-low/30 transition-colors"
       >
         <div className="flex items-center gap-2">
-          <span className="text-sm font-semibold text-[#E6EDF3]">Injection Testing</span>
-          <span className="text-[10px] bg-red-500/20 text-red-400 border border-red-500/20 px-1.5 py-0.5 rounded">
-            {INJECTION_TESTS.length} tests
+          <span className="material-symbols-outlined text-error text-[16px]" style={{ fontVariationSettings: "'FILL' 1" }}>
+            bug_report
+          </span>
+          <span className="text-sm font-bold text-on-surface">Injection Testing</span>
+          <span className="text-[10px] bg-error/10 text-error border border-error/20 px-2 py-0.5 rounded-full font-bold">
+            {INJECTION_TESTS.length}
           </span>
         </div>
-        <span className="text-xs text-[#484F58]">{open ? "▲" : "▼"}</span>
+        <span className={`material-symbols-outlined text-outline text-[16px] transition-transform duration-300 ${open ? "rotate-180" : ""}`}>
+          keyboard_arrow_down
+        </span>
       </button>
 
       {open && (
-        <div className="p-4 space-y-3">
-          {/* Category tabs */}
-          <div className="flex flex-wrap gap-1">
+        <div className="px-4 pb-4 space-y-3 border-t border-[rgba(174,173,170,0.10)]">
+          {/* Category chips */}
+          <div className="flex flex-wrap gap-1 pt-3">
             {categories.map((cat) => (
               <button
                 key={cat}
                 onClick={() => setActiveCategory(cat)}
-                className={`text-xs px-2 py-1 rounded transition-colors ${
+                className={`text-xs px-3 py-1 rounded-full font-semibold transition-colors ${
                   activeCategory === cat
-                    ? "bg-indigo-500 text-white"
-                    : "bg-[#1E2330] border border-[#30363D] text-[#8B949E] hover:text-[#E6EDF3] hover:border-[#484F58]"
+                    ? "bg-error/15 text-error border border-error/25"
+                    : "bg-surface-container text-on-surface-variant hover:text-on-surface"
                 }`}
               >
                 {cat}
@@ -92,30 +95,30 @@ export default function InjectionPanel({
           {/* Test list */}
           <div className="space-y-1">
             {filtered.map((test) => (
-              <div key={test.id} className="border border-[#30363D] rounded-lg overflow-hidden">
+              <div key={test.id} className="ghost-border rounded-xl overflow-hidden">
                 <div className="flex items-center justify-between px-3 py-2">
                   <div className="flex items-center gap-2 min-w-0">
                     <button
                       onClick={() => setExpandedId(expandedId === test.id ? null : test.id)}
-                      className="text-xs text-[#E6EDF3] text-left truncate hover:text-indigo-300 transition-colors"
+                      className="text-xs text-on-surface text-left truncate hover:text-primary transition-colors"
                     >
                       {test.label}
                     </button>
-                    <span className={`text-[10px] shrink-0 ${categoryColor[test.category] ?? "text-[#484F58]"}`}>
+                    <span className={`text-[10px] shrink-0 font-semibold ${categoryColor[test.category] ?? "text-outline"}`}>
                       {test.category}
                     </span>
                   </div>
                   <button
                     onClick={() => handleTest(test)}
                     disabled={loading || runningAll}
-                    className="text-xs bg-[#1E2330] border border-[#30363D] hover:border-orange-500/50 hover:text-orange-300 text-[#8B949E] px-2 py-0.5 rounded transition-colors disabled:opacity-40 disabled:cursor-not-allowed shrink-0 ml-2"
+                    className="text-xs text-on-primary px-2.5 py-1 rounded-lg font-bold bg-gradient-to-r from-primary to-primary-container disabled:opacity-40 disabled:cursor-not-allowed shrink-0 ml-2 transition-all hover:-translate-y-0.5"
                   >
                     Test
                   </button>
                 </div>
                 {expandedId === test.id && (
-                  <div className="px-3 pb-2 border-t border-[#30363D] pt-2 bg-[#0D1117]">
-                    <p className="text-[11px] text-[#8B949E] font-mono leading-relaxed">
+                  <div className="px-3 pb-2.5 border-t border-[rgba(174,173,170,0.10)] pt-2 bg-surface-container-low/30">
+                    <p className="text-[11px] text-on-surface-variant font-mono leading-relaxed">
                       {test.message}
                     </p>
                   </div>
@@ -128,12 +131,12 @@ export default function InjectionPanel({
           <button
             onClick={handleTestAll}
             disabled={loading || runningAll}
-            className="w-full text-xs border border-orange-500/30 text-orange-400 hover:bg-orange-500/10 py-1.5 rounded transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            className="w-full text-xs border border-error/30 text-error hover:bg-error/8 py-2 rounded-xl font-bold transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {runningAll ? "Running…" : `Test All (${filtered.length})`}
           </button>
 
-          <p className="text-[11px] text-[#484F58]">
+          <p className="text-[11px] text-outline">
             Click a test label to preview the message. &quot;Test&quot; runs it immediately with your current system prompt.
           </p>
         </div>
