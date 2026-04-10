@@ -10,7 +10,10 @@ Built for developers and prompt engineers who are tired of switching tabs to tes
 
 - **Multi-model parallel execution** — run a prompt against any combination of supported models simultaneously, results appear as they land
 - **6 providers, 15 models** — Anthropic, OpenAI, Google Gemini, Mistral, Groq (Llama), and xAI Grok
-- **Side-by-side response comparison** — score each response and see latency per model
+- **Side-by-side comparison** — latency bars, cost estimates, and per-model scoring make tradeoffs obvious at a glance
+- **Diff view** — highlight word-level differences between any two responses; select which two when running 3+ models
+- **Prompt templates** — save and reload named system prompts; edit them in place without delete/recreate
+- **Re-run from history** — any saved run can be opened in the playground with prompt and models pre-filled
 - **Save and revisit runs** — authenticated users can save scored runs to a searchable history
 - **Demo mode** — try it without signing up; 3 runs, no API key required, powered by a server-side Anthropic key
 - **Your keys, encrypted** — API keys are stored AES-256-GCM encrypted; only the last 4 characters are ever returned to the client
@@ -58,6 +61,16 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
+### Database Setup
+
+Run the migrations in `supabase/migrations/` in order against your Supabase project (SQL editor or `supabase db push`):
+
+| Migration | What it does |
+|---|---|
+| `20260101000000_initial_schema.sql` | Core tables: `profiles`, `api_keys`, `runs`, RLS policies, signup trigger |
+| `20260320000000_api_keys_unique_constraint.sql` | Unique constraint on `(user_id, provider)` for key upserts |
+| `20260410000000_prompt_templates.sql` | `prompt_templates` table with RLS |
+
 ### Environment Variables
 
 | Variable | Description |
@@ -75,7 +88,7 @@ Open [http://localhost:3000](http://localhost:3000).
 
 **Demo mode** — hit the landing page and click "Try Demo." No account needed. You get 3 runs against Claude models using a shared server-side key.
 
-**Authenticated mode** — sign up, add your provider API keys in the playground sidebar (Anthropic, OpenAI, Google, Mistral, Groq, or xAI), select any combination of models, write your prompt, and run. Score each response, then save the run to history for later review.
+**Authenticated mode** — sign up, add your provider API keys in the playground sidebar, select any combination of models, write your prompt, and run. Score each response, save the run to history, or open a past run to iterate on it.
 
 ---
 
@@ -102,15 +115,27 @@ Route protection is handled by `src/proxy.ts` (Next.js 16's renamed middleware l
 
 ```
 app/
-├── page.tsx                  # Landing page
-├── (auth)/login + signup     # Unauthenticated auth pages
+├── page.tsx                    # Landing page
+├── (auth)/login + signup       # Unauthenticated auth pages
 ├── (dashboard)/
-│   ├── playground/           # Main prompt UI (server + client components)
-│   └── history/              # Saved runs (server component)
+│   ├── playground/             # Main prompt UI (server + client components)
+│   └── history/                # Saved runs (server component)
 └── api/
-    ├── run/route.ts          # Parallel model execution
-    └── keys/route.ts         # Encrypted key CRUD
+    ├── run/route.ts            # Parallel model execution
+    ├── keys/route.ts           # Encrypted key CRUD
+    └── templates/route.ts      # Prompt template CRUD
 ```
+
+### Adding a Provider
+
+1. Add a file `src/lib/providers/{name}.ts` — export `call{Name}(modelId, systemPrompt, userMessage, apiKey) → { response, latency_ms }`
+2. Add the provider name to `ProviderName` in `src/lib/types.ts`
+3. Add an entry to `PROVIDER_MAP` in `src/app/api/run/route.ts`
+4. Add models to `SUPPORTED_MODELS` in `src/lib/models.ts`
+5. Add to the provider allowlist in `src/app/api/keys/route.ts`
+6. Add to `PROVIDER_LABELS` in `src/components/shared/KeyManager.tsx`
+
+Mistral, Groq, and xAI all use OpenAI-compatible APIs — their providers reuse the `openai` package with a custom `baseURL`. Only Google required a new SDK (`@google/generative-ai`).
 
 ---
 
@@ -126,17 +151,9 @@ npm run lint     # ESLint
 
 ## Future Features
 
-Features planned but not yet built, in rough priority order.
+**Prompt versioning** — group history runs by system prompt, show average score trends over time. MVP can be client-side grouping in `RunList` — no schema changes needed.
 
-**Diff view** — When two responses are selected, highlight what's meaningfully different between them. Useful for comparing subtle prompt variations where the responses look similar at a glance but diverge in specific ways.
-
-**Re-run from history** — An "Open in Playground" button on any history card that pre-fills the prompt editor and model selection from that run. Closes the loop between reviewing past results and iterating on them.
-
-**Token count and cost estimate** — Show an estimated token count and API cost per model run next to the latency figure. Computed from model pricing tables on the server — no external calls needed. Useful for teams with budget constraints or anyone optimizing for cost vs. quality.
-
-**Prompt versioning** — Track how a prompt evolves across runs. If the same system prompt appears in multiple saves, group them and show a quality trend (average score over time). Makes it easier to see whether prompt changes are actually improving output.
-
-**Team workspaces** — Multiple users under a shared workspace with a unified history and shared templates. The natural next step if this moves from individual use to a team tool.
+**Team workspaces** — shared workspace with unified history and shared templates. Requires new `workspaces` + `workspace_members` tables, RLS overhaul, and workspace switcher UI.
 
 ---
 

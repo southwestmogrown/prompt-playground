@@ -1,3 +1,81 @@
+# Devlog — April 10, 2026: Comparison Features + Prompt Templates
+
+## Summary
+
+Six features shipped in one session: re-run from history, token/cost estimates, diff view, latency visualization, prompt templates (with inline edit), and multi-provider expansion. The app is now meaningfully more useful as a comparison tool, not just a multi-model runner.
+
+---
+
+## Re-run from History
+
+**Problem:** History was read-only. You could see what you ran, but getting back to the playground with the same setup required copying the prompt manually and re-selecting models.
+
+**Fix:** "Open in Playground →" button in each expanded RunCard. Saves `{ systemPrompt, userMessage, models }` to sessionStorage under `prism_restore_run`, then navigates to `/playground`. PlaygroundClient's mount effect checks for a restore run before checking for a draft, restores valid models (filters out any that have since been removed from the model list), then clears the key.
+
+**Files:** `src/lib/demo.ts` (3 new helpers), `src/components/history/RunCard.tsx`, `src/app/(dashboard)/playground/PlaygroundClient.tsx`
+
+---
+
+## Token Count + Cost Estimate
+
+**Approach:** Static pricing table in `src/lib/pricing.ts`, computed client-side using character-count token approximation (÷4, accurate to ~10% for English). No tokenizer library, no external calls.
+
+`estimateCost(modelId, inputText, outputText)` returns `number | null` — null if the model isn't in the pricing table, which renders as nothing rather than $NaN.
+
+Shown in `ResponseCard` header alongside latency. Very small costs (<$0.0001) render in exponential notation to avoid showing `$0.0000`.
+
+**Files:** `src/lib/pricing.ts` (new), `src/components/playground/ResponseCard.tsx`
+
+---
+
+## Diff View
+
+**What:** Word-level diff between any two responses. With exactly 2 responses, "Compare" goes straight to diff view. With 3+, it enters a selection mode — clicking cards picks the pair (ring highlight on selected, dimmed on unselectable), auto-advances to diff when two are chosen.
+
+**Algorithm:** LCS-based word diff in `src/lib/diff.ts`. Splits on whitespace, standard DP table + backtrack. Returns parallel `{ left: DiffPart[], right: DiffPart[] }` — same index positions can be "same", "removed" (left only), or "added" (right only). No library dependency.
+
+**Files:** `src/lib/diff.ts` (new), `src/components/playground/DiffView.tsx` (new), `PlaygroundClient.tsx`
+
+---
+
+## Latency Visualization
+
+**What:** A 3px indigo bar at the bottom of each ResponseCard header. Width = `(minLatency / card.latency_ms) × 100%` — fastest card fills the bar, slower ones scale down proportionally. "Wider = faster" reads naturally. Fastest card also gets a green "Fastest" badge.
+
+Only rendered when 2+ non-errored responses exist. Errored cards have no bar. Single-model runs have no bars.
+
+Computed in `PlaygroundClient` before the render loop — `minLatency` and `isFastest` passed as props to each `ResponseCard`.
+
+**Files:** `src/components/playground/ResponseCard.tsx`, `PlaygroundClient.tsx`
+
+---
+
+## Prompt Templates
+
+**What:** Save named system prompts, reload them in future sessions, edit in place.
+
+**Schema:** New `prompt_templates` table (id, user_id, name, system_prompt, created_at). RLS scoped to owner. Migration: `supabase/migrations/20260410000000_prompt_templates.sql`.
+
+**API:** `/api/templates` — GET, POST, PUT, DELETE. Pattern identical to `/api/keys`. PUT (edit) included from the start — delete/recreate loops are bad UX.
+
+**UI:** `TemplateSelector` component in the playground sidebar (hidden in demo mode). Template list with click-to-select → "Load selected" with confirm dialog if the editor has content. Each template has Edit and Remove buttons. Edit expands an inline form pre-filled with name + system_prompt textarea — no modal, no navigation. Cancel/Update inline. Only one template editable at a time.
+
+**Files:** `supabase/migrations/20260410000000_prompt_templates.sql` (new), `src/app/api/templates/route.ts` (new), `src/components/playground/TemplateSelector.tsx` (new), `PlaygroundClient.tsx`
+
+---
+
+## Patterns Worth Noting
+
+**Static pricing tables beat live lookups for estimates.** Cost estimation doesn't need to be exact — within 10% is enough for "is this model 10x cheaper?" decisions. A hardcoded table with a char÷4 approximation handles it with zero runtime cost and no external dependency. Update the table when pricing changes.
+
+**`Record<Union, V>` as exhaustiveness enforcement.** `PROVIDER_MAP: Record<ProviderName, ProviderFn>` means adding a new provider to the union without a map entry is a compile-time error, not a runtime `undefined`. Same pattern applied to `PROVIDER_LABELS` in KeyManager. No switch statements, no runtime checks needed.
+
+**Confirm-on-overwrite at the call site.** The `onLoad` callback in TemplateSelector calls `confirm()` before overwriting a non-empty system prompt. The guard lives in the component that owns the action, not scattered across callers. Simple, predictable, no custom dialog infrastructure needed.
+
+**Inline edit over delete/recreate.** Omitting PUT from an API because "MVP" just means users do two round-trips and lose their original if something goes wrong. The cost of adding PUT upfront is low; the cost of not having it is user frustration on every edit.
+
+---
+
 # Devlog — April 10, 2026: Multi-Provider Expansion
 
 ## Summary

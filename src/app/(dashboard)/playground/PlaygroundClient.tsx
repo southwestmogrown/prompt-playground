@@ -12,6 +12,7 @@ import ModelSelector from "@/components/playground/ModelSelector";
 import PromptEditor from "@/components/playground/PromptEditor";
 import ResponseCard from "@/components/playground/ResponseCard";
 import DiffView from "@/components/playground/DiffView";
+import TemplateSelector from "@/components/playground/TemplateSelector";
 
 interface PlaygroundClientProps {
   models: ModelOption[];
@@ -191,6 +192,13 @@ export default function PlaygroundClient({
               disabled={loading}
             />
 
+            {!isDemo && (
+              <TemplateSelector
+                systemPrompt={systemPrompt}
+                onLoad={(prompt) => setSystemPrompt(prompt)}
+              />
+            )}
+
             <ModelSelector
               models={models}
               selected={selectedModels}
@@ -302,55 +310,65 @@ export default function PlaygroundClient({
                 })()}
 
                 {/* Normal response grid */}
-                {diffMode !== "viewing" && (
-                  <div
-                    className={`grid gap-4 ${
-                      responses.length === 1 ? "grid-cols-1" : "grid-cols-1 sm:grid-cols-2"
-                    }`}
-                  >
-                    {responses.map((r) => {
-                      const isSelected = diffSelections.includes(r.model);
-                      const isSelectable = diffMode === "selecting" && !r.error;
-                      const isDisabledByLimit = diffMode === "selecting" && diffSelections.length === 2 && !isSelected;
+                {diffMode !== "viewing" && (() => {
+                  const successfulResponses = responses.filter((r) => !r.error && r.latency_ms > 0);
+                  const minLatency = successfulResponses.length
+                    ? Math.min(...successfulResponses.map((r) => r.latency_ms))
+                    : 0;
+                  const showLatencyBars = successfulResponses.length > 1;
 
-                      function handleDiffSelect() {
-                        if (!isSelectable || isDisabledByLimit) return;
-                        setDiffSelections((prev) => {
-                          const next = isSelected
-                            ? prev.filter((id) => id !== r.model)
-                            : [...prev, r.model];
-                          if (next.length === 2) setDiffMode("viewing");
-                          return next;
-                        });
-                      }
+                  return (
+                    <div
+                      className={`grid gap-4 ${
+                        responses.length === 1 ? "grid-cols-1" : "grid-cols-1 sm:grid-cols-2"
+                      }`}
+                    >
+                      {responses.map((r) => {
+                        const isSelected = diffSelections.includes(r.model);
+                        const isSelectable = diffMode === "selecting" && !r.error;
+                        const isDisabledByLimit = diffMode === "selecting" && diffSelections.length === 2 && !isSelected;
 
-                      return (
-                        <div
-                          key={r.model}
-                          onClick={isSelectable && !isDisabledByLimit ? handleDiffSelect : undefined}
-                          className={
-                            isSelectable
-                              ? isDisabledByLimit
-                                ? "opacity-40 cursor-not-allowed"
-                                : isSelected
-                                  ? "cursor-pointer ring-2 ring-indigo-500 rounded-lg"
-                                  : "cursor-pointer hover:ring-2 hover:ring-[#484F58] rounded-lg"
-                              : ""
-                          }
-                        >
-                          <ResponseCard
-                            response={r}
-                            modelName={modelMap[r.model] ?? r.model}
-                            score={scores[r.model] ?? null}
-                            onScore={(s) => setScores((prev) => ({ ...prev, [r.model]: s }))}
-                            isDemo={isDemo}
-                            inputText={systemPrompt ? `${systemPrompt}\n${userMessage}` : userMessage}
-                          />
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
+                        function handleDiffSelect() {
+                          if (!isSelectable || isDisabledByLimit) return;
+                          setDiffSelections((prev) => {
+                            const next = isSelected
+                              ? prev.filter((id) => id !== r.model)
+                              : [...prev, r.model];
+                            if (next.length === 2) setDiffMode("viewing");
+                            return next;
+                          });
+                        }
+
+                        return (
+                          <div
+                            key={r.model}
+                            onClick={isSelectable && !isDisabledByLimit ? handleDiffSelect : undefined}
+                            className={
+                              isSelectable
+                                ? isDisabledByLimit
+                                  ? "opacity-40 cursor-not-allowed"
+                                  : isSelected
+                                    ? "cursor-pointer ring-2 ring-indigo-500 rounded-lg"
+                                    : "cursor-pointer hover:ring-2 hover:ring-[#484F58] rounded-lg"
+                                : ""
+                            }
+                          >
+                            <ResponseCard
+                              response={r}
+                              modelName={modelMap[r.model] ?? r.model}
+                              score={scores[r.model] ?? null}
+                              onScore={(s) => setScores((prev) => ({ ...prev, [r.model]: s }))}
+                              isDemo={isDemo}
+                              inputText={systemPrompt ? `${systemPrompt}\n${userMessage}` : userMessage}
+                              minLatency={showLatencyBars ? minLatency : undefined}
+                              isFastest={showLatencyBars && r.latency_ms === minLatency && !r.error}
+                            />
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })()}
               </div>
             )}
           </div>
