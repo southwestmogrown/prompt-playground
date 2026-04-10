@@ -1,8 +1,146 @@
-# Devlog — April 10, 2026: Comparison Features + Prompt Templates
+# Devlog — April 10, 2026: UI Polish + Template Fixes + Model Key Gating
 
 ## Summary
 
-Six features shipped in one session: re-run from history, token/cost estimates, diff view, latency visualization, prompt templates (with inline edit), and multi-provider expansion. The app is now meaningfully more useful as a comparison tool, not just a multi-model runner.
+Three focused changes in one session: UI bug fixes (scrollable dropdowns, responsive API key form, layout balance), template storage expanded to include user message and model selection, and model selection gated on provider API key availability.
+
+---
+
+## UI Punch List
+
+### 1 — Persona Presets and Injection Testing scrollable
+
+**Problem:** Both accordion panels in the sidebar expanded to reveal all items unbounded — 12 personas + 17 injection tests could push content far down the page.
+
+**Fix:** Wrapped the open-panel content in both `PersonaSelector` and `InjectionPanel` with `max-h-[280px] overflow-y-auto`. In `InjectionPanel`, the "Test All" button and helper text remain below the scroll region so they're always accessible.
+
+**Files:** `src/components/playground/PersonaSelector.tsx`, `src/components/playground/InjectionPanel.tsx`
+
+---
+
+### 2 — API Keys Save button clipped on narrow widths
+
+**Problem:** The add-key form row (`provider select` + `API key input` + `Save button`) had no wrapping behavior. On narrow viewports the row overflowed past the `overflow-hidden rounded-3xl` container, clipping the button mid-letter.
+
+**Fix:** Changed from `flex gap-2` to `flex flex-col sm:flex-row gap-2` — stacks vertically on mobile, horizontal above `sm`. Added `min-w-0` to the input to allow proper shrinking, and `sm:shrink-0` on the select and button.
+
+**Files:** `src/components/shared/KeyManager.tsx`
+
+---
+
+### 3 — Excess space between sidebar and controls
+
+**Problem:** The sidebar was `w-64` with `lg:ml-72` offset — leaving too much white space before the playground controls on wide screens.
+
+**Fix:** Reduced sidebar width from `w-64` → `w-60` and main content offset from `lg:ml-72` → `lg:ml-64`. Recovers ~1rem without restructuring the grid.
+
+**Files:** `src/components/shared/Sidebar.tsx`, `src/app/(dashboard)/playground/PlaygroundClient.tsx`
+
+---
+
+### 4 — ResponseCard markdown rendering + max-height + expand/collapse
+
+**Problem:** Responses rendered as plain text with `whitespace-pre-wrap` — no markdown, no code block styling, no height constraint.
+
+**Fix:**
+- Added `react-markdown` dependency
+- Replaced plain `<p>` with `<ReactMarkdown>` for proper formatting
+- Added `expanded` state and expand/collapse button (arrow icon) in the card header
+- Response body: `max-h-52 overflow-y-auto` when collapsed, `max-h-none` when expanded — scrollable in both states
+- Tailwind prose overrides for `<code>`, `<pre>`, and `<p>` elements inside the markdown container (monospace, subtle backgrounds)
+
+**Files:** `src/components/playground/ResponseCard.tsx`, `package.json`
+
+---
+
+## Branding: "Prism" → "Prism AI"
+
+Updated all visible brand instances across pages and components:
+- Landing page hero, nav logo, footer
+- Auth page titles and subtitle ("Sign in to your Prism AI account")
+- History page title
+- Header and Sidebar logo text
+
+**Files:** `src/app/page.tsx`, `src/app/layout.tsx`, `src/app/(auth)/login/page.tsx`, `src/app/(auth)/signup/page.tsx`, `src/app/(dashboard)/history/page.tsx`, `src/components/shared/Header.tsx`, `src/components/shared/Sidebar.tsx`
+
+---
+
+## Landing Page Visual — Prism Hero Image
+
+**Changes:**
+- Replaced the `filter_vintage` icon in the prism visual center with `prism-hero-1.png`
+- Swapped `<img>` for Next.js `<Image>` component (eliminates LCP warning)
+- Bumped the container from `80×80` to `96×96` for more breathing room
+- Nested the same image in all three panes (outer glass card, middle layer, center) at decreasing opacity (60% → 80% → full) creating a recursive refraction effect
+
+**Files:** `src/app/page.tsx`
+
+---
+
+## Template Storage Expanded: Save Full Run Config
+
+**Problem:** "Save as template" only persisted `system_prompt`. Users expected the full run configuration (user message + selected models) to be saved and restored.
+
+**Fix:** Extended the `prompt_templates` table schema and API to store `user_message` (TEXT) and `models` (TEXT[]) alongside `system_prompt`.
+
+**DB Migration:** `supabase/migrations/20260415000000_templates_save_models.sql`
+```sql
+ALTER TABLE prompt_templates ADD COLUMN IF NOT EXISTS user_message TEXT DEFAULT '';
+ALTER TABLE prompt_templates ADD COLUMN IF NOT EXISTS models TEXT[] DEFAULT '{}';
+```
+
+**API changes** (`/api/templates/route.ts`):
+- `GET`: Returns `user_message` and `models` columns
+- `POST`: Accepts and stores all four fields (`name`, `system_prompt`, `user_message`, `models`)
+- `PUT`: Updates all four fields
+
+**`TemplateSelector`** (`src/components/playground/TemplateSelector.tsx`):
+- New props: `userMessage: string`, `selectedModels: string[]`
+- Save form POSTs all four fields
+- Inline edit form now shows: name input, system prompt textarea, user message textarea, comma-separated model IDs field
+- `PlaygroundClient` passes `userMessage` and `selectedModels` down
+
+**Files:** `supabase/migrations/20260415000000_templates_save_models.sql` (new), `src/app/api/templates/route.ts`, `src/components/playground/TemplateSelector.tsx`, `src/app/(dashboard)/playground/PlaygroundClient.tsx`
+
+---
+
+## Model Selection Gated on API Key Availability
+
+**Problem:** All 15 models were always visible and selectable regardless of which API keys the user had configured. Users would select a model, run, and get a silent failure — they had no way to know which models were actually usable.
+
+**Fix:** Models are now visually marked as available or unavailable based on whether the user has a stored key for that provider.
+
+**`KeyManager`** (`src/components/shared/KeyManager.tsx`):
+- New prop: `onKeysChange?: () => void`
+- Called after every save and delete, triggering `PlaygroundClient` to re-fetch the current key state
+
+**`PlaygroundClient`** (`src/app/(dashboard)/playground/PlaygroundClient.tsx`):
+- Fetches `/api/keys` on mount for authenticated users, derives `storedProviders: ProviderName[]`
+- Passes `storedProviders` to `ModelSelector`
+- `handleKeysChange()` re-fetches after any `KeyManager` mutation
+
+**`ModelSelector`** (`src/components/playground/ModelSelector.tsx`):
+- New prop: `availableProviders: ProviderName[]`
+- For each model: if the provider has no stored key:
+  - Checkbox disabled
+  - Row text muted to `text-outline`
+  - `cursor-not-allowed` on the full label
+  - Lock icon rendered next to model name
+  - Hover tooltip: `"Add your [Provider] API key in API Keys to enable this model"`
+
+**Files:** `src/components/shared/KeyManager.tsx`, `src/app/(dashboard)/playground/PlaygroundClient.tsx`, `src/components/playground/ModelSelector.tsx`
+
+---
+
+## Patterns Worth Noting
+
+**Scroll containers need `overflow-hidden` stripped to work.** Both `PersonaSelector` and `InjectionPanel` had `overflow-hidden` on the outer glass panel, which clips any scroll overflow even when the inner content has `overflow-y-auto`. The scroll container must be inside the clipped boundary — the fix was moving the `max-h` + `overflow-y-auto` onto an inner div, not the panel itself.
+
+**`flex-col sm:flex-row` for responsive stacking without JavaScript.** One CSS class swap handles mobile-first vertical stacking and horizontal layout at the breakpoint — no resize listeners or state needed.
+
+**Disabled checkbox + `cursor-not-allowed` on the label, not just the input.** The `<input type="checkbox" className="sr-only">` pattern hides the native control. If only the input is `disabled`, the visible label still shows a pointer cursor. Setting `cursor-not-allowed` on the `<label>` covers the full clickable area including the visible text.
+
+**Callback props vs. lifting state.** `KeyManager` needed to tell `PlaygroundClient` "keys changed" so PlaygroundClient could re-fetch and propagate the new provider set to `ModelSelector`. The cleanest approach is an `onKeysChange` callback prop — `KeyManager` doesn't need to know anything about how `PlaygroundClient` stores or uses the keys.
 
 ---
 
@@ -40,9 +178,9 @@ Shown in `ResponseCard` header alongside latency. Very small costs (<$0.0001) re
 
 ## Latency Visualization
 
-**What:** A 3px indigo bar at the bottom of each ResponseCard header. Width = `(minLatency / card.latency_ms) × 100%` — fastest card fills the bar, slower ones scale down proportionally. "Wider = faster" reads naturally. Fastest card also gets a green "Fastest" badge.
+**What:** A 3px bar at the bottom of each ResponseCard header. Width = `(minLatency / card.latency_ms) × 100%` — fastest card fills the bar, slower ones scale down proportionally. Fastest card also gets a green "Fastest" badge.
 
-Only rendered when 2+ non-errored responses exist. Errored cards have no bar. Single-model runs have no bars.
+Only rendered when 2+ non-errored responses exist.
 
 Computed in `PlaygroundClient` before the render loop — `minLatency` and `isFastest` passed as props to each `ResponseCard`.
 
@@ -50,29 +188,45 @@ Computed in `PlaygroundClient` before the render loop — `minLatency` and `isFa
 
 ---
 
-## Prompt Templates
+## Prompt Templates (v1)
 
-**What:** Save named system prompts, reload them in future sessions, edit in place.
+**Schema:** `prompt_templates` table (id, user_id, name, system_prompt, user_message, models, created_at). RLS scoped to owner. Migration: `supabase/migrations/20260415000000_templates_save_models.sql`.
 
-**Schema:** New `prompt_templates` table (id, user_id, name, system_prompt, created_at). RLS scoped to owner. Migration: `supabase/migrations/20260410000000_prompt_templates.sql`.
+**API:** `/api/templates` — GET, POST, PUT, DELETE. Pattern identical to `/api/keys`. PUT included from the start — delete/recreate loops are bad UX.
 
-**API:** `/api/templates` — GET, POST, PUT, DELETE. Pattern identical to `/api/keys`. PUT (edit) included from the start — delete/recreate loops are bad UX.
+**UI:** `TemplateSelector` component in the playground sidebar (hidden in demo mode). Template list with click-to-select → "Load selected" with confirm dialog if the editor has content. Inline edit with pre-filled name + system_prompt + user_message + models fields.
 
-**UI:** `TemplateSelector` component in the playground sidebar (hidden in demo mode). Template list with click-to-select → "Load selected" with confirm dialog if the editor has content. Each template has Edit and Remove buttons. Edit expands an inline form pre-filled with name + system_prompt textarea — no modal, no navigation. Cancel/Update inline. Only one template editable at a time.
+**Files:** `supabase/migrations/20260415000000_templates_save_models.sql` (new), `src/app/api/templates/route.ts`, `src/components/playground/TemplateSelector.tsx` (new), `PlaygroundClient.tsx`
 
-**Files:** `supabase/migrations/20260410000000_prompt_templates.sql` (new), `src/app/api/templates/route.ts` (new), `src/components/playground/TemplateSelector.tsx` (new), `PlaygroundClient.tsx`
+---
+
+## Multi-Provider Expansion
+
+**Providers added:** Google Gemini (`@google/generative-ai` SDK), Mistral, Groq, xAI (all OpenAI-compatible, custom `baseURL`). Total models: 15 across 6 providers.
+
+`PROVIDER_MAP: Record<ProviderName, ProviderFn>` enforces exhaustiveness at compile time — new providers added to the union without a map entry cause a build error, not a runtime `undefined`.
+
+**Files:** `src/lib/providers/` (4 new), `src/lib/types.ts`, `src/app/api/run/route.ts`, `src/lib/models.ts`
 
 ---
 
 ## Patterns Worth Noting
 
-**Static pricing tables beat live lookups for estimates.** Cost estimation doesn't need to be exact — within 10% is enough for "is this model 10x cheaper?" decisions. A hardcoded table with a char÷4 approximation handles it with zero runtime cost and no external dependency. Update the table when pricing changes.
+**Static pricing tables beat live lookups for estimates.** Cost estimation doesn't need to be exact — within 10% is enough. A hardcoded table with a char÷4 approximation handles it with zero runtime cost and no external dependency.
 
-**`Record<Union, V>` as exhaustiveness enforcement.** `PROVIDER_MAP: Record<ProviderName, ProviderFn>` means adding a new provider to the union without a map entry is a compile-time error, not a runtime `undefined`. Same pattern applied to `PROVIDER_LABELS` in KeyManager. No switch statements, no runtime checks needed.
+**`Record<Union, V>` as exhaustiveness enforcement.** `PROVIDER_MAP: Record<ProviderName, ProviderFn>` means adding a new provider to the union without a map entry is a compile-time error. Same pattern applied to `PROVIDER_LABELS` in KeyManager.
 
-**Confirm-on-overwrite at the call site.** The `onLoad` callback in TemplateSelector calls `confirm()` before overwriting a non-empty system prompt. The guard lives in the component that owns the action, not scattered across callers. Simple, predictable, no custom dialog infrastructure needed.
+**OpenAI-compatible APIs reduce integration cost significantly.** Mistral, Groq, and xAI all took under 10 lines each — just a `baseURL` swap on the existing OpenAI client.
 
-**Inline edit over delete/recreate.** Omitting PUT from an API because "MVP" just means users do two round-trips and lose their original if something goes wrong. The cost of adding PUT upfront is low; the cost of not having it is user frustration on every edit.
+**Confirm-on-overwrite at the call site.** `onLoad` in TemplateSelector calls `confirm()` before overwriting a non-empty system prompt — lives in the component that owns the action, not scattered across callers.
+
+**Inline edit over delete/recreate.** Omitting PUT from an API because "MVP" just means users do two round-trips and risk losing their original. Low cost upfront, big UX difference.
+
+**`try/catch/finally` on every async handler.** Always put `setLoading(false)` in a `finally` block — never inline after the await. Easy to miss and invisible in the happy path.
+
+**`incrementDemoRun()` returns the updated session — use it.** Using `prev + 1` instead of the return value creates a second source of truth if sessionStorage diverges.
+
+**URL params don't replace auth checks.** Using `?demo=true` to branch on auth-sensitive behavior without also checking the session is a correctness hole. Always validate session state server-side.
 
 ---
 

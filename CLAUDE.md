@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Prism** — A multi-model LLM prompt testing tool. Run any prompt against multiple AI models simultaneously, compare responses side by side, score them, and save runs for later review. Includes a demo mode for unauthenticated visitors.
+**Prism AI** — A multi-model LLM prompt testing tool. Run any prompt against multiple AI models simultaneously, compare responses side by side, score them, and save runs for later review. Includes a demo mode for unauthenticated visitors.
 
 **Stack:** Next.js 16 (App Router, TypeScript), Tailwind CSS v4, Supabase (auth + Postgres), Vercel, Anthropic SDK, OpenAI SDK, Google Generative AI SDK.
 
@@ -46,11 +46,14 @@ npm run lint       # ESLint
 
 ### Key Component Files
 
-- `components/playground/ResponseCard.tsx` — per-model response card; shows response text, latency bar, cost estimate, score input, and "Fastest" badge
+- `components/playground/ResponseCard.tsx` — per-model response card; shows response text (markdown rendered via react-markdown), latency bar, cost estimate, score input, "Fastest" badge, and expand/collapse toggle
 - `components/playground/DiffView.tsx` — side-by-side word-level diff between two `ModelResponse` objects
-- `components/playground/TemplateSelector.tsx` — save/load/edit/delete named system prompt templates; inline edit form, confirm-on-overwrite guard
+- `components/playground/TemplateSelector.tsx` — save/load/edit/delete named templates; stores system_prompt, user_message, and selected_models; inline edit form
+- `components/playground/ModelSelector.tsx` — model chip selector; models without a stored API key are disabled with a lock icon and tooltip; `availableProviders` prop gates selection
 - `components/history/RunCard.tsx` — expandable history card with "Open in Playground →" button
-- `components/shared/KeyManager.tsx` — add/remove encrypted API keys per provider
+- `components/shared/KeyManager.tsx` — add/remove encrypted API keys per provider; `onKeysChange` callback to notify parent of key mutations
+- `components/shared/PersonaSelector.tsx` — accordion panel of persona presets; scrollable when open (`max-h-[280px] overflow-y-auto`)
+- `components/shared/InjectionPanel.tsx` — accordion panel of injection tests; scrollable when open; "Test All" button below scroll region
 
 ### Proxy (formerly Middleware)
 
@@ -74,7 +77,7 @@ Keys are encrypted with AES-256-GCM (Node `crypto.createCipheriv`) using `ENCRYP
 - `profiles` — mirrors `auth.users`, created by trigger on signup
 - `api_keys` — encrypted provider keys per user; unique on `(user_id, provider)`; RLS: own rows only
 - `runs` — saved playground runs with JSONB `responses` array; RLS: own rows only
-- `prompt_templates` — named system prompts per user; RLS: own rows only; supports GET/POST/PUT/DELETE
+- `prompt_templates` — named prompt templates per user; RLS: own rows only; stores `system_prompt`, `user_message`, and `models` (TEXT[]) alongside the name; supports GET/POST/PUT/DELETE
 
 ### Adding a Provider
 
@@ -84,6 +87,7 @@ Keys are encrypted with AES-256-GCM (Node `crypto.createCipheriv`) using `ENCRYP
 4. `src/lib/models.ts` — add models to `SUPPORTED_MODELS`
 5. `src/app/api/keys/route.ts` — add to provider allowlist
 6. `src/components/shared/KeyManager.tsx` — add to `PROVIDER_LABELS` and the dropdown
+7. `src/components/playground/ModelSelector.tsx` — add provider to `PROVIDER_LABELS` so the gating tooltip shows the correct label
 
 Mistral, Groq, xAI use OpenAI-compatible APIs — reuse the `openai` package with a custom `baseURL`, no new package needed. Google required `@google/generative-ai`.
 
@@ -107,3 +111,4 @@ Migrations live in `supabase/migrations/` and are applied manually in the Supaba
 1. `20260101000000_initial_schema.sql`
 2. `20260320000000_api_keys_unique_constraint.sql`
 3. `20260410000000_prompt_templates.sql`
+4. `20260415000000_templates_save_models.sql` — adds `user_message TEXT` and `models TEXT[]` to `prompt_templates`

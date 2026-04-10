@@ -119,15 +119,7 @@ export default function LandingPage() {
               </div>
               {/* Center icon */}
               <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-28 h-28 rounded-3xl shadow-[0_8px_32px_rgba(160,58,15,0.4)] overflow-hidden">
-                  <Image
-                    src="/prism-hero-1.png"
-                    alt="Prism AI"
-                    width={112}
-                    height={112}
-                    className="object-cover"
-                  />
-                </div>
+                <div className="w-28 h-28 rounded-3xl bg-gradient-to-br from-primary to-primary-container shadow-[0_8px_32px_rgba(160,58,15,0.4)]" />
               </div>
               {/* Floating badges */}
               <div className="absolute -top-3 -right-3 glass-panel ghost-border rounded-2xl px-3 py-2 flex items-center gap-1.5 shadow-ambient">
