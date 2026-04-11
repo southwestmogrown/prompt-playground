@@ -31,17 +31,15 @@ export default function LoginForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="glass-panel ghost-border rounded-3xl p-8 space-y-5 shadow-ambient">
+    <form onSubmit={handleSubmit} className="space-y-4">
       {error && (
-        <div className="bg-error/10 border border-error/20 text-error px-4 py-3 rounded-2xl text-sm flex items-center gap-2">
-          <span className="material-symbols-outlined text-[16px]">error</span>
+        <div className="bg-error/10 border border-error/20 text-error px-4 py-3 rounded-lg font-mono text-xs flex items-center gap-2">
+          <span className="material-symbols-outlined text-[14px]">error</span>
           {error}
         </div>
       )}
       <div className="space-y-1.5">
-        <label htmlFor="email" className="block text-xs font-bold text-on-surface-variant uppercase tracking-widest">
-          Email
-        </label>
+        <label htmlFor="email" className="console-label block">Email</label>
         <input
           id="email"
           type="email"
@@ -49,13 +47,11 @@ export default function LoginForm() {
           onChange={(e) => setEmail(e.target.value)}
           required
           placeholder="you@example.com"
-          className="w-full bg-surface-container-high ghost-border rounded-2xl px-4 py-3 text-sm text-on-surface placeholder-outline focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-tertiary/30 transition-all"
+          className="w-full bg-surface-container border border-[rgba(255,255,255,0.08)] rounded-lg px-4 py-3 font-mono text-sm text-on-surface placeholder-outline focus:outline-none focus:border-primary/50 focus:bg-surface-container-high transition-all"
         />
       </div>
       <div className="space-y-1.5">
-        <label htmlFor="password" className="block text-xs font-bold text-on-surface-variant uppercase tracking-widest">
-          Password
-        </label>
+        <label htmlFor="password" className="console-label block">Password</label>
         <input
           id="password"
           type="password"
@@ -63,19 +59,19 @@ export default function LoginForm() {
           onChange={(e) => setPassword(e.target.value)}
           required
           placeholder="••••••••"
-          className="w-full bg-surface-container-high ghost-border rounded-2xl px-4 py-3 text-sm text-on-surface placeholder-outline focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-tertiary/30 transition-all"
+          className="w-full bg-surface-container border border-[rgba(255,255,255,0.08)] rounded-lg px-4 py-3 font-mono text-sm text-on-surface placeholder-outline focus:outline-none focus:border-primary/50 focus:bg-surface-container-high transition-all"
         />
       </div>
       <button
         type="submit"
         disabled={loading}
-        className="w-full text-on-primary py-3 px-4 rounded-2xl text-sm font-black disabled:opacity-50 disabled:cursor-not-allowed transition-all bg-gradient-to-r from-primary to-primary-container shadow-[0_8px_24px_rgba(160,58,15,0.3)] hover:shadow-[0_12px_32px_rgba(160,58,15,0.4)] hover:-translate-y-0.5"
+        className="w-full bg-primary text-on-primary py-3 px-4 rounded-lg font-mono text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed transition-all glow-primary"
       >
         {loading ? "Signing in…" : "Sign in"}
       </button>
-      <p className="text-center text-sm text-on-surface-variant">
+      <p className="text-center console-label">
         Don&apos;t have an account?{" "}
-        <Link href="/signup" className="text-primary font-semibold hover:text-primary-container transition-colors">
+        <Link href="/signup" className="text-primary hover:text-on-surface transition-colors">
           Sign up
         </Link>
       </p>

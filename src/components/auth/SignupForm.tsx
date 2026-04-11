@@ -36,16 +36,16 @@ export default function SignupForm() {
 
   if (success) {
     return (
-      <div className="glass-panel ghost-border rounded-3xl p-8 text-center space-y-4 shadow-ambient">
-        <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-green-100 border border-green-200 mb-1">
-          <span className="material-symbols-outlined text-green-600 text-[22px]" style={{ fontVariationSettings: "'FILL' 1" }}>
+      <div className="text-center space-y-4 py-4">
+        <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-green/10 border border-green/30 mb-1">
+          <span className="material-symbols-outlined text-green text-[22px]" style={{ fontVariationSettings: "'FILL' 1" }}>
             check_circle
           </span>
         </div>
-        <p className="font-headline font-bold text-lg text-on-surface">Check your email</p>
-        <p className="text-sm text-on-surface-variant leading-relaxed">
+        <p className="font-mono font-bold text-sm text-on-surface">Check your email</p>
+        <p className="console-label leading-relaxed">
           We sent a confirmation link to{" "}
-          <span className="text-on-surface font-semibold">{email}</span>.
+          <span className="text-on-surface">{email}</span>.
           Click it to activate your account.
         </p>
       </div>
@@ -53,17 +53,15 @@ export default function SignupForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="glass-panel ghost-border rounded-3xl p-8 space-y-5 shadow-ambient">
+    <form onSubmit={handleSubmit} className="space-y-4">
       {error && (
-        <div className="bg-error/10 border border-error/20 text-error px-4 py-3 rounded-2xl text-sm flex items-center gap-2">
-          <span className="material-symbols-outlined text-[16px]">error</span>
+        <div className="bg-error/10 border border-error/20 text-error px-4 py-3 rounded-lg font-mono text-xs flex items-center gap-2">
+          <span className="material-symbols-outlined text-[14px]">error</span>
           {error}
         </div>
       )}
       <div className="space-y-1.5">
-        <label htmlFor="email" className="block text-xs font-bold text-on-surface-variant uppercase tracking-widest">
-          Email
-        </label>
+        <label htmlFor="email" className="console-label block">Email</label>
         <input
           id="email"
           type="email"
@@ -71,13 +69,11 @@ export default function SignupForm() {
           onChange={(e) => setEmail(e.target.value)}
           required
           placeholder="you@example.com"
-          className="w-full bg-surface-container-high ghost-border rounded-2xl px-4 py-3 text-sm text-on-surface placeholder-outline focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-tertiary/30 transition-all"
+          className="w-full bg-surface-container border border-[rgba(255,255,255,0.08)] rounded-lg px-4 py-3 font-mono text-sm text-on-surface placeholder-outline focus:outline-none focus:border-primary/50 focus:bg-surface-container-high transition-all"
         />
       </div>
       <div className="space-y-1.5">
-        <label htmlFor="password" className="block text-xs font-bold text-on-surface-variant uppercase tracking-widest">
-          Password
-        </label>
+        <label htmlFor="password" className="console-label block">Password</label>
         <input
           id="password"
           type="password"
@@ -86,13 +82,11 @@ export default function SignupForm() {
           required
           minLength={6}
           placeholder="••••••••"
-          className="w-full bg-surface-container-high ghost-border rounded-2xl px-4 py-3 text-sm text-on-surface placeholder-outline focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-tertiary/30 transition-all"
+          className="w-full bg-surface-container border border-[rgba(255,255,255,0.08)] rounded-lg px-4 py-3 font-mono text-sm text-on-surface placeholder-outline focus:outline-none focus:border-primary/50 focus:bg-surface-container-high transition-all"
         />
       </div>
       <div className="space-y-1.5">
-        <label htmlFor="confirm" className="block text-xs font-bold text-on-surface-variant uppercase tracking-widest">
-          Confirm password
-        </label>
+        <label htmlFor="confirm" className="console-label block">Confirm password</label>
         <input
           id="confirm"
           type="password"
@@ -100,19 +94,19 @@ export default function SignupForm() {
           onChange={(e) => setConfirm(e.target.value)}
           required
           placeholder="••••••••"
-          className="w-full bg-surface-container-high ghost-border rounded-2xl px-4 py-3 text-sm text-on-surface placeholder-outline focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-tertiary/30 transition-all"
+          className="w-full bg-surface-container border border-[rgba(255,255,255,0.08)] rounded-lg px-4 py-3 font-mono text-sm text-on-surface placeholder-outline focus:outline-none focus:border-primary/50 focus:bg-surface-container-high transition-all"
         />
       </div>
       <button
         type="submit"
         disabled={loading}
-        className="w-full text-on-primary py-3 px-4 rounded-2xl text-sm font-black disabled:opacity-50 disabled:cursor-not-allowed transition-all bg-gradient-to-r from-primary to-primary-container shadow-[0_8px_24px_rgba(160,58,15,0.3)] hover:shadow-[0_12px_32px_rgba(160,58,15,0.4)] hover:-translate-y-0.5"
+        className="w-full bg-primary text-on-primary py-3 px-4 rounded-lg font-mono text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed transition-all glow-primary"
       >
         {loading ? "Creating account…" : "Create account"}
       </button>
-      <p className="text-center text-sm text-on-surface-variant">
+      <p className="text-center console-label">
         Already have an account?{" "}
-        <Link href="/login" className="text-primary font-semibold hover:text-primary-container transition-colors">
+        <Link href="/login" className="text-primary hover:text-on-surface transition-colors">
           Sign in
         </Link>
       </p>

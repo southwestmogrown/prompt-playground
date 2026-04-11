@@ -209,12 +209,7 @@ export default function PlaygroundClient({
   }
 
   return (
-    <div className="min-h-screen bg-mesh text-on-surface">
-      {/* Ambient orbs */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
-        <div className="absolute -top-40 -left-40 w-[500px] h-[500px] rounded-full bg-primary/6 blur-[120px]" />
-        <div className="absolute top-1/2 -right-60 w-[400px] h-[400px] rounded-full bg-secondary/6 blur-[100px]" />
-      </div>
+    <div className="min-h-screen bg-grid text-on-surface">
 
       <Header userEmail={userEmail} isDemo={isDemo} />
 
@@ -229,16 +224,17 @@ export default function PlaygroundClient({
 
       {!isDemo && <Sidebar userEmail={userEmail} />}
 
-      <main className={`relative ${!isDemo ? "lg:ml-64" : ""} px-4 sm:px-6 py-6 pb-16`}>
+      <main className={`relative ${!isDemo ? "lg:ml-56" : ""} px-4 sm:px-6 py-6 pb-16`}>
         <div className="max-w-7xl mx-auto">
 
           {/* Page header */}
-          <div className="mb-6 flex items-center justify-between">
+          <div className="mb-6 flex items-center gap-3">
+            <span className="led led-active" />
             <div>
-              <h1 className="font-headline font-extrabold tracking-tighter text-3xl text-on-surface">
+              <h1 className="font-mono font-bold text-lg text-on-surface tracking-wider uppercase">
                 Playground
               </h1>
-              <p className="text-on-surface-variant text-sm mt-0.5">
+              <p className="console-label mt-0.5">
                 Run any prompt across multiple models simultaneously
               </p>
             </div>
@@ -290,8 +286,8 @@ export default function PlaygroundClient({
               />
 
               {error && (
-                <div className="flex items-center gap-2 bg-error/10 border border-error/20 text-error rounded-2xl px-4 py-3 text-sm">
-                  <span className="material-symbols-outlined text-[16px]">error</span>
+                <div className="flex items-center gap-2 bg-error/10 border border-error/20 text-error rounded-lg px-4 py-3 text-sm font-mono">
+                  <span className="material-symbols-outlined text-[15px]">error</span>
                   {error}
                 </div>
               )}
@@ -300,21 +296,21 @@ export default function PlaygroundClient({
               <button
                 onClick={handleRun}
                 disabled={loading || (isDemo && limitReached)}
-                className="w-full inline-flex items-center justify-center gap-2 text-on-primary py-3.5 px-6 rounded-2xl font-black disabled:opacity-50 disabled:cursor-not-allowed transition-all bg-gradient-to-r from-primary to-primary-container shadow-[0_10px_30px_rgba(160,58,15,0.3)] hover:shadow-[0_15px_40px_rgba(160,58,15,0.4)] hover:-translate-y-0.5 text-base"
+                className="w-full inline-flex items-center justify-center gap-2 bg-primary text-on-primary py-3.5 px-6 rounded-lg font-mono font-bold text-sm uppercase tracking-wider disabled:opacity-40 disabled:cursor-not-allowed transition-all glow-primary"
               >
                 {loading ? (
                   <>
-                    <span className="material-symbols-outlined text-[18px] animate-spin">progress_activity</span>
+                    <span className="material-symbols-outlined text-[16px] animate-spin">progress_activity</span>
                     Running…
                   </>
                 ) : isDemo && limitReached ? (
                   <>
-                    <span className="material-symbols-outlined text-[18px]">block</span>
+                    <span className="material-symbols-outlined text-[16px]">block</span>
                     Demo limit reached
                   </>
                 ) : (
                   <>
-                    <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>play_arrow</span>
+                    <span className="material-symbols-outlined text-[16px]" style={{ fontVariationSettings: "'FILL' 1" }}>play_arrow</span>
                     Execute Run
                   </>
                 )}
@@ -326,20 +322,21 @@ export default function PlaygroundClient({
             {/* Right panel: responses */}
             <div className="lg:col-span-2">
               {loading && (
-                <div className="flex flex-col items-center justify-center h-60 glass-panel ghost-border rounded-3xl gap-3">
-                  <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center">
-                    <span className="material-symbols-outlined text-primary text-[24px] animate-spin">progress_activity</span>
+                <div className="flex flex-col items-center justify-center h-60 console-panel rounded-xl gap-3">
+                  <div className="flex items-center gap-3">
+                    <span className="led led-active animate-pulse" />
+                    <span className="material-symbols-outlined text-primary text-[20px] animate-spin">progress_activity</span>
                   </div>
-                  <p className="text-on-surface-variant text-sm font-medium">Waiting for responses…</p>
+                  <p className="console-label text-primary">Waiting for responses…</p>
                 </div>
               )}
 
               {!loading && responses.length === 0 && (
-                <div className="flex flex-col items-center justify-center h-60 ghost-border border-2 border-dashed rounded-3xl gap-3 bg-surface-container-lowest/20">
-                  <div className="w-12 h-12 rounded-2xl bg-surface-container flex items-center justify-center">
-                    <span className="material-symbols-outlined text-outline text-[24px]">chat_bubble_outline</span>
+                <div className="flex flex-col items-center justify-center h-60 console-panel rounded-xl gap-3 border-dashed">
+                  <div className="w-10 h-10 rounded-lg bg-surface-container border border-[rgba(255,255,255,0.07)] flex items-center justify-center">
+                    <span className="material-symbols-outlined text-outline text-[20px]">chat_bubble_outline</span>
                   </div>
-                  <p className="text-outline text-sm">Responses will appear here</p>
+                  <p className="console-label">Responses will appear here</p>
                 </div>
               )}
 
@@ -351,13 +348,13 @@ export default function PlaygroundClient({
                       <button
                         onClick={handleSave}
                         disabled={saving || saved}
-                        className={`inline-flex items-center gap-1.5 py-2 px-4 rounded-xl text-sm font-bold transition-all ${
+                        className={`inline-flex items-center gap-1.5 py-2 px-3 rounded-lg console-label border transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
                           saved
-                            ? "bg-green-100 border border-green-200 text-green-700"
-                            : "glass-panel ghost-border text-on-surface hover:-translate-y-0.5"
-                        } disabled:opacity-50 disabled:cursor-not-allowed`}
+                            ? "border-green/40 bg-green/8 text-green"
+                            : "border-[rgba(255,255,255,0.1)] bg-surface-container hover:border-[rgba(255,255,255,0.18)] text-on-surface"
+                        }`}
                       >
-                        <span className="material-symbols-outlined text-[15px]" style={{ fontVariationSettings: saved ? "'FILL' 1" : "'FILL' 0" }}>
+                        <span className="material-symbols-outlined text-[13px]" style={{ fontVariationSettings: saved ? "'FILL' 1" : "'FILL' 0" }}>
                           {saved ? "check_circle" : "save"}
                         </span>
                         {saving ? "Saving…" : saved ? "Saved" : "Save Run"}
@@ -366,9 +363,9 @@ export default function PlaygroundClient({
 
                     <button
                       onClick={() => setShowExport(true)}
-                      className="inline-flex items-center gap-1.5 glass-panel ghost-border text-on-surface py-2 px-4 rounded-xl text-sm font-bold hover:-translate-y-0.5 transition-all"
+                      className="inline-flex items-center gap-1.5 py-2 px-3 rounded-lg console-label border border-[rgba(255,255,255,0.1)] bg-surface-container hover:border-[rgba(255,255,255,0.18)] text-on-surface transition-all"
                     >
-                      <span className="material-symbols-outlined text-[15px]">download</span>
+                      <span className="material-symbols-outlined text-[13px]">download</span>
                       Export
                     </button>
 
@@ -384,23 +381,23 @@ export default function PlaygroundClient({
                                 setDiffSelections([]);
                               }
                             }}
-                            className="inline-flex items-center gap-1.5 glass-panel ghost-border text-on-surface py-2 px-4 rounded-xl text-sm font-bold hover:-translate-y-0.5 transition-all"
+                            className="inline-flex items-center gap-1.5 py-2 px-3 rounded-lg console-label border border-[rgba(255,255,255,0.1)] bg-surface-container hover:border-[rgba(255,255,255,0.18)] text-on-surface transition-all"
                           >
-                            <span className="material-symbols-outlined text-[15px]">compare</span>
+                            <span className="material-symbols-outlined text-[13px]">compare</span>
                             Compare
                           </button>
                         )}
                         {(diffMode === "selecting" || diffMode === "viewing") && (
                           <button
                             onClick={() => { setDiffMode("off"); setDiffSelections([]); }}
-                            className="inline-flex items-center gap-1.5 glass-panel ghost-border text-on-surface py-2 px-4 rounded-xl text-sm font-bold hover:-translate-y-0.5 transition-all"
+                            className="inline-flex items-center gap-1.5 py-2 px-3 rounded-lg console-label border border-[rgba(255,255,255,0.1)] bg-surface-container hover:border-[rgba(255,255,255,0.18)] text-on-surface transition-all"
                           >
-                            <span className="material-symbols-outlined text-[15px]">close</span>
+                            <span className="material-symbols-outlined text-[13px]">close</span>
                             {diffMode === "selecting" ? "Cancel" : "Exit Compare"}
                           </button>
                         )}
                         {diffMode === "selecting" && (
-                          <span className="text-xs text-outline">
+                          <span className="console-label">
                             {diffSelections.length === 0
                               ? "Select two responses to compare"
                               : "Select one more"}
@@ -410,8 +407,8 @@ export default function PlaygroundClient({
                     )}
 
                     {saveError && (
-                      <p className="text-sm text-error flex items-center gap-1.5">
-                        <span className="material-symbols-outlined text-[14px]">error</span>
+                      <p className="console-label text-error flex items-center gap-1.5">
+                        <span className="material-symbols-outlined text-[13px]">error</span>
                         {saveError}
                       </p>
                     )}
@@ -476,8 +473,8 @@ export default function PlaygroundClient({
                                   ? isDisabledByLimit
                                     ? "opacity-40 cursor-not-allowed"
                                     : isSelected
-                                      ? "cursor-pointer ring-2 ring-primary/60 rounded-[2rem]"
-                                      : "cursor-pointer hover:ring-2 hover:ring-outline/40 rounded-[2rem]"
+                                      ? "cursor-pointer ring-2 ring-primary/60 rounded-xl"
+                                      : "cursor-pointer hover:ring-2 hover:ring-outline/40 rounded-xl"
                                   : ""
                               }
                             >

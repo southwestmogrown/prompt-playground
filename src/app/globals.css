@@ -1,80 +1,70 @@
 @import "tailwindcss";
 
 /* ─────────────────────────────────────────────
-   Luminous Refraction — Spectral Design Tokens
+   PRISM — Dark Console Design Tokens
    ───────────────────────────────────────────── */
 @theme inline {
   /* Fonts */
   --font-headline: var(--font-manrope), sans-serif;
   --font-body: var(--font-inter), sans-serif;
   --font-label: var(--font-inter), sans-serif;
+  --font-mono: var(--font-jetbrains-mono), "JetBrains Mono", "Fira Code", monospace;
 
-  /* Primary — burnt orange / coral */
-  --color-primary: #a03a0f;
-  --color-primary-dim: #902e02;
-  --color-primary-container: #fe7e4f;
-  --color-on-primary: #ffefeb;
-  --color-on-primary-container: #491300;
-  --color-primary-fixed: #fe7e4f;
-  --color-primary-fixed-dim: #ed7244;
+  /* Primary — cyan (from the prism icon) */
+  --color-primary: #00d4ff;
+  --color-primary-dim: #0099bb;
+  --color-primary-glow: rgba(0, 212, 255, 0.12);
+  --color-on-primary: #000d14;
 
-  /* Secondary — violet / lavender */
-  --color-secondary: #6a3cc9;
-  --color-secondary-dim: #5e2dbd;
-  --color-secondary-container: #dbc9ff;
-  --color-secondary-fixed: #dbc9ff;
-  --color-secondary-fixed-dim: #ceb9ff;
-  --color-on-secondary: #f8f0ff;
-  --color-on-secondary-container: #5521b4;
-  --color-on-secondary-fixed: #41009a;
-  --color-on-secondary-fixed-variant: #5f2ebe;
+  /* Secondary — violet */
+  --color-secondary: #8b5cf6;
+  --color-secondary-dim: #7c3aed;
+  --color-on-secondary: #f5f3ff;
 
-  /* Tertiary — gold / amber */
-  --color-tertiary: #765600;
-  --color-tertiary-dim: #674b00;
-  --color-tertiary-container: #ffbf00;
-  --color-tertiary-fixed: #ffbf00;
-  --color-tertiary-fixed-dim: #eeb200;
-  --color-on-tertiary: #fff1db;
-  --color-on-tertiary-container: #563e00;
-  --color-on-tertiary-fixed: #3d2b00;
-  --color-on-tertiary-fixed-variant: #614700;
+  /* Green — success / go / fastest */
+  --color-green: #4ade80;
+  --color-green-dim: #22c55e;
+  --color-on-green: #052e16;
 
-  /* Surface hierarchy — warm cream */
-  --color-surface: #f8f6f2;
-  --color-surface-bright: #f8f6f2;
-  --color-surface-dim: #d5d4d0;
-  --color-surface-container-lowest: #ffffff;
-  --color-surface-container-low: #f2f1ec;
-  --color-surface-container: #e9e8e4;
-  --color-surface-container-high: #e4e2de;
-  --color-surface-container-highest: #deddd8;
-  --color-surface-variant: #deddd8;
-  --color-surface-tint: #a03a0f;
+  /* Surface hierarchy — dark console */
+  --color-background: #070a0d;
+  --color-surface-0: #0c1018;
+  --color-surface-1: #121a24;
+  --color-surface-2: #192230;
+  --color-surface-3: #1f2b3a;
 
-  /* On-surface text */
-  --color-on-surface: #2e2f2d;
-  --color-on-surface-variant: #5b5c59;
-  --color-on-background: #2e2f2d;
+  /* Aliases for component compatibility */
+  --color-surface: #0c1018;
+  --color-surface-bright: #1f2b3a;
+  --color-surface-dim: #070a0d;
+  --color-surface-container-lowest: #070a0d;
+  --color-surface-container-low: #0c1018;
+  --color-surface-container: #121a24;
+  --color-surface-container-high: #192230;
+  --color-surface-container-highest: #1f2b3a;
+  --color-surface-variant: #192230;
+  --color-surface-tint: #00d4ff;
 
-  /* Outlines */
-  --color-outline: #777774;
-  --color-outline-variant: #aeadaa;
+  /* Text */
+  --color-on-surface: #d0dce8;
+  --color-on-surface-variant: #6b8394;
+  --color-on-background: #d0dce8;
 
-  /* Background */
-  --color-background: #f8f6f2;
+  /* Outlines / borders */
+  --color-outline: #364550;
+  --color-outline-variant: #1e2d3a;
 
   /* Inverse */
-  --color-inverse-surface: #0e0e0d;
-  --color-inverse-on-surface: #9e9d99;
-  --color-inverse-primary: #fe7e4f;
+  --color-inverse-surface: #d0dce8;
+  --color-inverse-on-surface: #0c1018;
+  --color-inverse-primary: #00d4ff;
 
   /* Error */
-  --color-error: #b31b25;
-  --color-error-dim: #9f0519;
-  --color-error-container: #fb5151;
-  --color-on-error: #ffefee;
-  --color-on-error-container: #570008;
+  --color-error: #f87171;
+  --color-error-dim: #ef4444;
+  --color-error-container: #7f1d1d;
+  --color-on-error: #fef2f2;
+  --color-on-error-container: #fca5a5;
 }
 
 /* ─────────────────────────────────────────────
@@ -82,8 +72,8 @@
    ───────────────────────────────────────────── */
 body {
   font-family: var(--font-inter), system-ui, sans-serif;
-  background: #f8f6f2;
-  color: #2e2f2d;
+  background: #070a0d;
+  color: #d0dce8;
 }
 
 /* ─────────────────────────────────────────────
@@ -97,69 +87,69 @@ body {
 }
 
 /* ─────────────────────────────────────────────
-   Glassmorphism utilities
+   Console background grid
    ───────────────────────────────────────────── */
-
-/* Frosted glass panel */
-.glass-panel {
-  background: rgba(255, 255, 255, 0.70);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-}
-
-/* Ghost border — barely-there catch-light */
-.ghost-border {
-  border: 1px solid rgba(174, 173, 170, 0.15);
-}
-
-/* Refractive shadow — tinted with primary coral */
-.refractive-shadow {
-  box-shadow: 0 25px 50px -12px rgba(254, 126, 79, 0.15);
-}
-
-/* Ambient glow — used for floating cards */
-.prism-glow {
-  box-shadow: 0 8px 32px 0 rgba(255, 127, 80, 0.12);
-}
-
-/* Diffuse ambient shadow (on-surface tinted) */
-.shadow-ambient {
-  box-shadow: 0px 20px 40px rgba(48, 46, 43, 0.06);
-}
-
-/* Gradient border using ::before mask trick */
-.glass-gradient-border {
-  position: relative;
-}
-.glass-gradient-border::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  padding: 1px;
-  background: linear-gradient(
-    to bottom right,
-    rgba(254, 126, 79, 0.40),
-    rgba(255, 191, 0, 0.10),
-    rgba(106, 60, 201, 0.20)
+.bg-grid {
+  background-color: #070a0d;
+  background-image: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.035) 1px,
+    transparent 1px
   );
-  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  pointer-events: none;
+  background-size: 24px 24px;
 }
 
 /* ─────────────────────────────────────────────
-   Mesh gradient background
+   Console panel — dark solid surface with bevel
    ───────────────────────────────────────────── */
-.bg-mesh {
-  background-color: #f8f6f2;
-  background-image:
-    radial-gradient(at 0% 0%,    rgba(254, 126, 79, 0.10) 0px, transparent 50%),
-    radial-gradient(at 100% 0%,  rgba(106, 60, 201, 0.10) 0px, transparent 50%),
-    radial-gradient(at 100% 100%, rgba(255, 191, 0, 0.10) 0px, transparent 50%),
-    radial-gradient(at 0% 100%,  rgba(237, 114, 68, 0.05) 0px, transparent 50%);
+.console-panel {
+  background: #0c1018;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-top-color: rgba(255, 255, 255, 0.12);
+}
+
+/* ─────────────────────────────────────────────
+   Console label — monospace uppercase chip
+   ───────────────────────────────────────────── */
+.console-label {
+  font-family: var(--font-jetbrains-mono), "JetBrains Mono", monospace;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #6b8394;
+}
+
+/* ─────────────────────────────────────────────
+   LED indicators
+   ───────────────────────────────────────────── */
+.led {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #364550;
+  flex-shrink: 0;
+}
+
+.led-active {
+  background: #00d4ff;
+  box-shadow: 0 0 6px 2px rgba(0, 212, 255, 0.55);
+}
+
+.led-green {
+  background: #4ade80;
+  box-shadow: 0 0 6px 2px rgba(74, 222, 128, 0.55);
+}
+
+/* ─────────────────────────────────────────────
+   Primary glow — cyan CTA shadow
+   ───────────────────────────────────────────── */
+.glow-primary {
+  box-shadow: 0 0 20px rgba(0, 212, 255, 0.25), 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.glow-primary:hover {
+  box-shadow: 0 0 30px rgba(0, 212, 255, 0.4), 0 6px 16px rgba(0, 0, 0, 0.5);
 }
 
 /* ─────────────────────────────────────────────
@@ -168,14 +158,13 @@ body {
 .prompt-glow {
   position: absolute;
   inset: -4px;
-  border-radius: 2rem;
+  border-radius: 0.75rem;
   background: linear-gradient(
     to right,
-    rgba(160, 58, 15, 0.20),
-    rgba(106, 60, 201, 0.10),
-    rgba(118, 86, 0, 0.20)
+    rgba(0, 212, 255, 0.15),
+    rgba(139, 92, 246, 0.08)
   );
-  filter: blur(16px);
+  filter: blur(12px);
   opacity: 0;
   transition: opacity 0.3s ease;
   pointer-events: none;

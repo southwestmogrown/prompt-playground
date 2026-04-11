@@ -119,44 +119,35 @@ export default function KeyManager({ onKeysChange }: KeyManagerProps) {
   }
 
   return (
-    <div className="glass-panel ghost-border rounded-3xl overflow-hidden shadow-ambient">
+    <div className="console-panel rounded-xl overflow-hidden">
       {/* Header */}
-      <div className="px-5 py-4 border-b border-[rgba(174,173,170,0.12)] flex items-center gap-2">
-        <span className="material-symbols-outlined text-primary text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>
-          key
-        </span>
-        <h2 className="text-sm font-bold text-on-surface">API Keys</h2>
+      <div className="px-4 py-2.5 border-b border-[rgba(255,255,255,0.07)] flex items-center gap-2">
+        <span className="material-symbols-outlined text-on-surface-variant text-[14px]" style={{ fontVariationSettings: "'FILL' 1" }}>key</span>
+        <span className="console-label">API Keys</span>
       </div>
 
-      <div className="p-5 space-y-4">
+      <div className="p-4 space-y-3">
         {/* Security note */}
-        <div className="flex gap-2.5 bg-primary/6 border border-primary/15 rounded-2xl px-4 py-3">
-          <span className="material-symbols-outlined text-primary text-[16px] shrink-0 mt-0.5" style={{ fontVariationSettings: "'FILL' 1" }}>
-            shield
-          </span>
-          <p className="text-xs text-on-surface-variant leading-relaxed">
-            Keys are encrypted with{" "}
-            <span className="text-on-surface font-semibold">AES-256-GCM</span> before storage.
-            Only the last 4 characters are readable. Your full key is inaccessible to us.
+        <div className="border-l-2 border-primary/40 pl-3 py-0.5">
+          <p className="console-label leading-relaxed">
+            Keys encrypted with <span className="text-primary">AES-256-GCM</span>. Only last 4 chars stored. Your full key is inaccessible to us.
           </p>
         </div>
 
         {/* Stored keys list */}
         {keys.length > 0 && (
-          <ul className="space-y-2">
+          <ul className="space-y-1">
             {keys.map((k) => (
-              <li key={k.id} className="flex items-center justify-between py-2 px-3 rounded-xl hover:bg-surface-container-low transition-colors">
+              <li key={k.id} className="flex items-center justify-between py-1.5 px-2 rounded-lg hover:bg-surface-container transition-colors">
                 <div className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-on-surface-variant text-[14px]" style={{ fontVariationSettings: "'FILL' 1" }}>
-                    vpn_key
-                  </span>
-                  <span className="text-sm text-on-surface font-medium">{PROVIDER_LABELS[k.provider]}</span>
-                  <span className="font-mono text-xs text-outline">…{k.key_hint}</span>
+                  <span className="led led-active" style={{ width: "5px", height: "5px" }} />
+                  <span className="font-mono text-xs text-on-surface">{PROVIDER_LABELS[k.provider]}</span>
+                  <span className="font-mono text-xs text-on-surface-variant">…{k.key_hint}</span>
                 </div>
                 <button
                   onClick={() => handleDelete(k.id)}
                   disabled={deletingId === k.id}
-                  className="text-xs text-error/70 hover:text-error disabled:opacity-40 disabled:cursor-not-allowed transition-colors font-medium"
+                  className="console-label text-error/60 hover:text-error disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                 >
                   {deletingId === k.id ? "Removing…" : "Remove"}
                 </button>
@@ -166,16 +157,16 @@ export default function KeyManager({ onKeysChange }: KeyManagerProps) {
         )}
 
         {/* Add key form */}
-        <form onSubmit={handleSave} className="space-y-3">
+        <form onSubmit={handleSave} className="space-y-2">
           {error && (
-            <p className="text-xs text-error flex items-center gap-1.5">
-              <span className="material-symbols-outlined text-[14px]">error</span>
+            <p className="console-label text-error flex items-center gap-1.5">
+              <span className="material-symbols-outlined text-[12px]">error</span>
               {error}
             </p>
           )}
           {success && (
-            <p className="text-xs text-green-600 flex items-center gap-1.5">
-              <span className="material-symbols-outlined text-[14px]" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+            <p className="console-label text-green flex items-center gap-1.5">
+              <span className="material-symbols-outlined text-[12px]" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
               {success}
             </p>
           )}
@@ -183,7 +174,7 @@ export default function KeyManager({ onKeysChange }: KeyManagerProps) {
             <select
               value={provider}
               onChange={(e) => setProvider(e.target.value as ProviderName)}
-              className="bg-surface-container-high ghost-border text-on-surface rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-tertiary/30 transition-all sm:shrink-0"
+              className="bg-surface-container border border-[rgba(255,255,255,0.08)] text-on-surface rounded-lg px-3 py-2 font-mono text-xs focus:outline-none focus:border-primary/50 transition-all sm:shrink-0"
             >
               <option value="anthropic">Anthropic</option>
               <option value="openai">OpenAI</option>
@@ -198,12 +189,12 @@ export default function KeyManager({ onKeysChange }: KeyManagerProps) {
               value={apiKey}
               onChange={(e) => setApiKey(e.target.value)}
               required
-              className="flex-1 min-w-0 bg-surface-container-high ghost-border text-on-surface placeholder-outline rounded-xl px-3 py-2 text-sm focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-tertiary/30 transition-all"
+              className="flex-1 min-w-0 bg-surface-container border border-[rgba(255,255,255,0.08)] text-on-surface placeholder-outline rounded-lg px-3 py-2 font-mono text-xs focus:outline-none focus:border-primary/50 focus:bg-surface-container-high transition-all"
             />
             <button
               type="submit"
               disabled={saving}
-              className="text-on-primary px-4 py-2 rounded-xl text-sm font-bold disabled:opacity-50 transition-all bg-gradient-to-r from-primary to-primary-container shadow-[0_4px_16px_rgba(160,58,15,0.25)] hover:shadow-[0_6px_20px_rgba(160,58,15,0.35)] hover:-translate-y-0.5 sm:shrink-0"
+              className="bg-primary text-on-primary px-4 py-2 rounded-lg font-mono text-xs font-bold disabled:opacity-50 transition-all glow-primary sm:shrink-0"
             >
               {saving ? "Saving…" : "Save"}
             </button>

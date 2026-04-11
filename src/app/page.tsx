@@ -3,40 +3,31 @@ import Image from "next/image";
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-mesh text-on-surface overflow-x-hidden">
-
-      {/* Ambient orbs */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
-        <div className="absolute -top-40 -left-40 w-[600px] h-[600px] rounded-full bg-primary/8 blur-[120px]" />
-        <div className="absolute top-1/3 -right-60 w-[500px] h-[500px] rounded-full bg-secondary/8 blur-[100px]" />
-        <div className="absolute bottom-0 left-1/3 w-[400px] h-[400px] rounded-full bg-tertiary-container/40 blur-[80px]" />
-      </div>
+    <div className="min-h-screen bg-grid text-on-surface overflow-x-hidden">
 
       {/* Nav */}
-      <header className="sticky top-0 z-50 glass-panel ghost-border shadow-[0_8px_32px_0_rgba(255,127,80,0.08)]">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+      <header className="sticky top-0 z-50 bg-surface-container-low border-b border-[rgba(255,255,255,0.07)]">
+        <div className="max-w-6xl mx-auto px-6 py-3.5 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary to-primary-container flex items-center justify-center">
-              <span className="material-symbols-outlined text-on-primary text-[16px] font-black" style={{ fontVariationSettings: "'FILL' 1" }}>
-                filter_vintage
-              </span>
+            <div className="w-7 h-7 rounded-lg overflow-hidden shrink-0">
+              <Image src="/prism-logo.png" alt="Prism" width={28} height={28} className="object-cover w-full h-full" />
             </div>
-            <span className="font-headline font-black tracking-tighter text-lg bg-gradient-to-r from-orange-500 to-amber-600 bg-clip-text text-transparent">
-              Prism AI
+            <span className="font-mono text-sm font-medium tracking-widest text-primary uppercase">
+              Prism
             </span>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <Link
               href="/login"
-              className="text-sm text-on-surface-variant hover:text-on-surface transition-colors font-medium px-4 py-2 rounded-xl hover:bg-surface-container-low"
+              className="console-label px-4 py-2 rounded-lg hover:bg-surface-container transition-colors"
             >
               Sign in
             </Link>
             <Link
               href="/signup"
-              className="text-sm text-on-primary px-5 py-2 rounded-2xl font-bold bg-gradient-to-r from-primary to-primary-container shadow-[0_4px_20px_rgba(160,58,15,0.3)] hover:shadow-[0_6px_24px_rgba(160,58,15,0.4)] hover:-translate-y-0.5 transition-all duration-300"
+              className="console-label px-4 py-2 rounded-lg bg-primary text-on-primary font-bold glow-primary transition-all"
             >
-              Get started free
+              Get started
             </Link>
           </div>
         </div>
@@ -44,196 +35,183 @@ export default function LandingPage() {
 
       {/* Hero */}
       <section className="relative px-6 pt-24 pb-20">
-        <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
+        <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-16 items-center">
+
           {/* Left */}
-          <div className="space-y-7">
-            {/* Badge */}
-            <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 text-primary rounded-full px-4 py-2 text-sm font-bold">
-              <span className="material-symbols-outlined text-[16px]" style={{ fontVariationSettings: "'FILL' 1" }}>
-                bolt
-              </span>
-              Intelligence Reimagined
+          <div className="space-y-8">
+            <div className="inline-flex items-center gap-2 border border-primary/30 bg-primary/8 rounded px-3 py-1.5">
+              <span className="led led-active" />
+              <span className="console-label text-primary">Multi-model AI testing</span>
             </div>
 
             <h1 className="font-headline font-extrabold tracking-tighter leading-[0.9] text-6xl sm:text-7xl text-on-surface">
               One prompt.{" "}
-              <span className="bg-gradient-to-r from-primary via-primary-container to-tertiary-container bg-clip-text text-transparent">
+              <span className="text-primary" style={{ textShadow: "0 0 40px rgba(0,212,255,0.4)" }}>
                 Every model.
               </span>
             </h1>
 
-            <p className="text-xl text-on-surface-variant leading-relaxed max-w-lg">
+            <p className="text-lg text-on-surface-variant leading-relaxed max-w-lg font-body">
               Run any prompt across Claude, GPT-4o, Gemini, and more — simultaneously.
               Compare responses side by side, score what works, save the runs that matter.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-3 pt-1">
+            <div className="flex flex-wrap gap-6 pt-1">
+              {[
+                { label: "Models", value: "10+" },
+                { label: "Parallel", value: "Yes" },
+                { label: "Latency", value: "Per-model" },
+              ].map((s) => (
+                <div key={s.label} className="space-y-0.5">
+                  <p className="console-label">{s.label}</p>
+                  <p className="font-mono text-sm text-primary font-medium">{s.value}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-3 pt-2">
               <Link
                 href="/playground?demo=true"
-                className="inline-flex items-center justify-center gap-2 text-on-primary px-8 py-3.5 rounded-2xl font-black bg-gradient-to-r from-primary to-primary-container shadow-[0_10px_30px_rgba(160,58,15,0.3)] hover:shadow-[0_15px_40px_rgba(160,58,15,0.4)] hover:-translate-y-0.5 transition-all duration-300 text-base"
+                className="inline-flex items-center justify-center gap-2 bg-primary text-on-primary px-8 py-3.5 rounded-lg font-mono font-bold text-sm uppercase tracking-wider glow-primary transition-all"
               >
-                <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>
+                <span className="material-symbols-outlined text-[16px]" style={{ fontVariationSettings: "'FILL' 1" }}>
                   play_arrow
                 </span>
-                Try the demo
+                Try demo
               </Link>
               <Link
                 href="/signup"
-                className="inline-flex items-center justify-center gap-2 glass-panel ghost-border text-on-surface px-8 py-3.5 rounded-2xl font-bold hover:-translate-y-0.5 transition-all duration-300 text-base"
+                className="inline-flex items-center justify-center gap-2 bg-surface-container border border-[rgba(255,255,255,0.1)] text-on-surface px-8 py-3.5 rounded-lg font-mono font-medium text-sm uppercase tracking-wider hover:border-[rgba(255,255,255,0.2)] transition-all"
               >
                 Sign up free
-                <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+                <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
               </Link>
             </div>
 
-            <p className="text-sm text-outline">
+            <p className="console-label">
               No credit card required · Bring your own API keys
             </p>
           </div>
 
-          {/* Right — prism visual */}
+          {/* Right — prism icon hero */}
           <div className="relative flex items-center justify-center lg:justify-end">
-            <div className="relative w-96 h-96">
-              {/* Glow behind */}
-              <div className="absolute inset-0 rounded-[3rem] bg-gradient-to-br from-primary/20 to-tertiary-container/30 blur-3xl scale-110" />
-              {/* Outer glass card */}
-              <div className="absolute inset-0 glass-panel ghost-border rounded-[2.5rem] glass-gradient-border" />
-              {/* Inner layers — refraction effect */}
-              <div className="absolute inset-6 glass-panel ghost-border rounded-[2rem] bg-white/50 overflow-hidden">
-                <Image
-                  src="/prism-hero-1.png"
-                  alt=""
-                  fill
-                  className="object-cover opacity-60"
-                  aria-hidden="true"
-                />
-              </div>
-              <div className="absolute inset-12 glass-panel ghost-border rounded-[1.5rem] bg-white/60 overflow-hidden">
-                <Image
-                  src="/prism-hero-1.png"
-                  alt=""
-                  fill
-                  className="object-cover opacity-80"
-                  aria-hidden="true"
-                />
-              </div>
-              {/* Center icon — official prism icon */}
+            <div className="relative w-80 h-80">
+              {/* Cyan glow halo */}
+              <div className="absolute inset-0 rounded-full bg-primary/10 blur-[80px] scale-125" />
+              <div className="absolute inset-8 rounded-full bg-primary/6 blur-[40px]" />
+              {/* Icon */}
               <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-28 h-28 rounded-3xl overflow-hidden shadow-[0_8px_32px_rgba(37,99,235,0.4)]">
-                  <Image
-                    src="/prism-icon-official.png"
-                    alt="Prism"
-                    width={112}
-                    height={112}
-                    className="object-cover w-full h-full"
-                  />
-                </div>
+                <Image
+                  src="/prism-logo.png"
+                  alt="Prism"
+                  width={256}
+                  height={256}
+                  className="w-64 h-64 object-contain drop-shadow-[0_0_40px_rgba(0,212,255,0.25)]"
+                  priority
+                />
               </div>
-              {/* Floating badges */}
-              <div className="absolute -top-3 -right-3 glass-panel ghost-border rounded-2xl px-3 py-2 flex items-center gap-1.5 shadow-ambient">
-                <span className="material-symbols-outlined text-primary text-[14px]" style={{ fontVariationSettings: "'FILL' 1" }}>bolt</span>
-                <span className="text-xs font-bold text-on-surface">6 models</span>
+              {/* Status chips */}
+              <div className="absolute -top-3 -right-3 console-panel rounded-lg px-3 py-2 flex items-center gap-2">
+                <span className="led led-green" />
+                <span className="console-label text-green">10 models live</span>
               </div>
-              <div className="absolute -bottom-3 -left-3 glass-panel ghost-border rounded-2xl px-3 py-2 flex items-center gap-1.5 shadow-ambient">
-                <span className="material-symbols-outlined text-[#765600] text-[14px]" style={{ fontVariationSettings: "'FILL' 1" }}>timeline</span>
-                <span className="text-xs font-bold text-on-surface">Side-by-side</span>
+              <div className="absolute -bottom-3 -left-3 console-panel rounded-lg px-3 py-2 flex items-center gap-2">
+                <span className="led led-active" />
+                <span className="console-label text-primary">Parallel execution</span>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Features bento grid */}
+      {/* Features bento */}
       <section className="px-6 py-20">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12 space-y-3">
-            <div className="inline-flex items-center gap-2 bg-tertiary/10 border border-tertiary/20 text-tertiary rounded-full px-4 py-1.5 text-xs font-bold uppercase tracking-wider">
-              Features
-            </div>
-            <h2 className="font-headline font-extrabold tracking-tighter text-4xl text-on-surface">
+          <div className="mb-10">
+            <p className="console-label mb-2">Capabilities</p>
+            <h2 className="font-headline font-extrabold tracking-tighter text-3xl text-on-surface">
               Built for the way you actually test prompts
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Large card */}
-            <div className="md:col-span-2 group relative bg-surface-container-lowest/60 backdrop-blur-[40px] ghost-border rounded-[2rem] p-7 refractive-shadow hover:-translate-y-2 transition-all duration-500 glass-gradient-border overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-[2rem]" />
-              <div className="relative space-y-4">
-                <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center">
-                  <span className="material-symbols-outlined text-primary text-[24px]" style={{ fontVariationSettings: "'FILL' 1" }}>
-                    hub
-                  </span>
+            <div className="md:col-span-2 console-panel rounded-xl p-6 group hover:border-[rgba(255,255,255,0.14)] transition-colors">
+              <div className="flex items-start gap-4">
+                <div className="shrink-0 w-10 h-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center">
+                  <span className="material-symbols-outlined text-primary text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>hub</span>
                 </div>
-                <h3 className="font-headline font-extrabold text-2xl tracking-tight text-on-surface">
-                  Multi-model playground
-                </h3>
-                <p className="text-on-surface-variant leading-relaxed">
-                  Fire one prompt at Claude 3.5, GPT-4o, Gemini 1.5, Mistral, Groq, and xAI simultaneously.
-                  All responses land at once — zero tab switching, zero repeated pasting.
+                <div className="space-y-2">
+                  <p className="console-label">01 / Multi-model</p>
+                  <h3 className="font-headline font-bold text-xl text-on-surface">Multi-model playground</h3>
+                  <p className="text-on-surface-variant text-sm leading-relaxed">
+                    Fire one prompt at Claude, GPT-4o, Gemini, Mistral, Groq, and xAI simultaneously.
+                    All responses land at once — zero tab switching.
+                  </p>
+                  <div className="flex flex-wrap gap-2 pt-2">
+                    {["Claude", "GPT-4o", "Gemini", "Mistral", "Groq", "xAI"].map((m) => (
+                      <span key={m} className="console-label px-2 py-1 bg-surface-container border border-[rgba(255,255,255,0.07)] rounded">
+                        {m}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Latency card */}
+            <div className="console-panel rounded-xl p-6 group hover:border-[rgba(255,255,255,0.14)] transition-colors">
+              <div className="space-y-3">
+                <div className="w-10 h-10 rounded-lg bg-green/10 border border-green/20 flex items-center justify-center">
+                  <span className="material-symbols-outlined text-green text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>speed</span>
+                </div>
+                <p className="console-label">02 / Latency</p>
+                <h3 className="font-headline font-bold text-xl text-on-surface">Warp speed</h3>
+                <p className="text-on-surface-variant text-sm leading-relaxed">
+                  Parallel execution with per-model latency tracking. See exactly who&apos;s fast — and who&apos;s not.
                 </p>
-                <div className="flex flex-wrap gap-2 pt-2">
-                  {["Claude", "GPT-4o", "Gemini", "Mistral", "Groq", "xAI"].map((m) => (
-                    <span key={m} className="text-xs font-bold px-3 py-1.5 rounded-full bg-surface-container-high text-on-surface-variant">
-                      {m}
-                    </span>
+                {/* Mini VU meter demo */}
+                <div className="space-y-1.5 pt-2">
+                  {[100, 72, 45].map((w, i) => (
+                    <div key={i} className="flex items-center gap-2">
+                      <div className="h-1.5 flex-1 bg-surface-container rounded-full overflow-hidden">
+                        <div className="h-full bg-primary rounded-full" style={{ width: `${w}%` }} />
+                      </div>
+                      <span className="console-label w-10 text-right">{Math.round(1200 / (w / 100))}ms</span>
+                    </div>
                   ))}
                 </div>
               </div>
             </div>
 
-            {/* Tall card */}
-            <div className="group relative bg-surface-container-lowest/60 backdrop-blur-[40px] ghost-border rounded-[2rem] p-7 refractive-shadow hover:-translate-y-2 transition-all duration-500 glass-gradient-border overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-tertiary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-[2rem]" />
-              <div className="relative space-y-4">
-                <div className="w-12 h-12 rounded-2xl bg-tertiary/10 flex items-center justify-center">
-                  <span className="material-symbols-outlined text-[#765600] text-[24px]" style={{ fontVariationSettings: "'FILL' 1" }}>
-                    speed
-                  </span>
+            {/* Security card */}
+            <div className="console-panel rounded-xl p-6 group hover:border-[rgba(255,255,255,0.14)] transition-colors">
+              <div className="space-y-3">
+                <div className="w-10 h-10 rounded-lg bg-secondary/10 border border-secondary/20 flex items-center justify-center">
+                  <span className="material-symbols-outlined text-secondary text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>lock</span>
                 </div>
-                <h3 className="font-headline font-extrabold text-2xl tracking-tight text-on-surface">
-                  Warp speed
-                </h3>
-                <p className="text-on-surface-variant leading-relaxed">
-                  Parallel execution with per-model latency tracking. See exactly who&apos;s fast — and who&apos;s not.
-                </p>
-              </div>
-            </div>
-
-            {/* Small card */}
-            <div className="group relative bg-surface-container-lowest/60 backdrop-blur-[40px] ghost-border rounded-[2rem] p-7 refractive-shadow hover:-translate-y-2 transition-all duration-500 glass-gradient-border overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-secondary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-[2rem]" />
-              <div className="relative space-y-4">
-                <div className="w-12 h-12 rounded-2xl bg-secondary/10 flex items-center justify-center">
-                  <span className="material-symbols-outlined text-secondary text-[24px]" style={{ fontVariationSettings: "'FILL' 1" }}>
-                    lock
-                  </span>
-                </div>
-                <h3 className="font-headline font-extrabold text-2xl tracking-tight text-on-surface">
-                  Your keys, your data
-                </h3>
-                <p className="text-on-surface-variant leading-relaxed">
+                <p className="console-label">03 / Security</p>
+                <h3 className="font-headline font-bold text-xl text-on-surface">Your keys, your data</h3>
+                <p className="text-on-surface-variant text-sm leading-relaxed">
                   AES-256-GCM encryption. We store only the last 4 chars. Your full key is cryptographically inaccessible to us.
                 </p>
               </div>
             </div>
 
-            {/* Medium card */}
-            <div className="md:col-span-2 group relative bg-surface-container-lowest/60 backdrop-blur-[40px] ghost-border rounded-[2rem] p-7 refractive-shadow hover:-translate-y-2 transition-all duration-500 glass-gradient-border overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-[2rem]" />
-              <div className="relative space-y-4">
-                <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center">
-                  <span className="material-symbols-outlined text-primary text-[24px]" style={{ fontVariationSettings: "'FILL' 1" }}>
-                    history
-                  </span>
+            {/* History card */}
+            <div className="md:col-span-2 console-panel rounded-xl p-6 group hover:border-[rgba(255,255,255,0.14)] transition-colors">
+              <div className="flex items-start gap-4">
+                <div className="shrink-0 w-10 h-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center">
+                  <span className="material-symbols-outlined text-primary text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>history</span>
                 </div>
-                <h3 className="font-headline font-extrabold text-2xl tracking-tight text-on-surface">
-                  Save what matters
-                </h3>
-                <p className="text-on-surface-variant leading-relaxed">
-                  Every run you save goes to your history. Score each response 1–5, compare across sessions,
-                  and restore any past run directly into the playground — complete with all model responses.
-                </p>
+                <div className="space-y-2">
+                  <p className="console-label">04 / History</p>
+                  <h3 className="font-headline font-bold text-xl text-on-surface">Save what matters</h3>
+                  <p className="text-on-surface-variant text-sm leading-relaxed">
+                    Every run you save goes to your history. Score each response 1–5, compare across sessions,
+                    and restore any past run directly into the playground.
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -243,108 +221,90 @@ export default function LandingPage() {
       {/* How it works */}
       <section className="px-6 py-20">
         <div className="max-w-4xl mx-auto">
-          <div className="bg-surface-container-low/40 backdrop-blur-xl ghost-border rounded-[2.5rem] p-10 relative overflow-hidden">
-            {/* Decorative orb */}
-            <div className="absolute -right-20 -top-20 w-64 h-64 rounded-full bg-primary/10 blur-3xl pointer-events-none" />
+          <div className="console-panel rounded-xl p-8 relative overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
 
-            <div className="relative">
-              <div className="text-center mb-10 space-y-2">
-                <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 text-primary rounded-full px-4 py-1.5 text-xs font-bold uppercase tracking-wider">
-                  How it works
-                </div>
-                <h2 className="font-headline font-extrabold tracking-tighter text-4xl text-on-surface">
-                  Optical inference in 3 steps
-                </h2>
-              </div>
+            <p className="console-label mb-6">How it works</p>
+            <h2 className="font-headline font-extrabold tracking-tighter text-3xl text-on-surface mb-8">
+              Three commands to output
+            </h2>
 
-              <div className="grid md:grid-cols-3 gap-6">
-                {[
-                  {
-                    step: "01",
-                    icon: "edit_note",
-                    title: "Write your prompt",
-                    desc: "Enter a system prompt and user message. Use templates to save and reuse your best setups.",
-                  },
-                  {
-                    step: "02",
-                    icon: "select_all",
-                    title: "Pick your models",
-                    desc: "Select any combination of Claude, GPT, Gemini, and more. One click enables a model.",
-                  },
-                  {
-                    step: "03",
-                    icon: "compare",
-                    title: "Compare & score",
-                    desc: "All responses arrive together. Score them, view word-level diffs, save the run.",
-                  },
-                ].map((s) => (
-                  <div key={s.step} className="space-y-4">
-                    <div className="flex items-center gap-3">
-                      <span className="font-headline font-black text-4xl text-primary/20 leading-none">{s.step}</span>
-                      <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                        <span className="material-symbols-outlined text-primary text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>
-                          {s.icon}
-                        </span>
-                      </div>
+            <div className="grid md:grid-cols-3 gap-6">
+              {[
+                { step: "01", icon: "edit_note", title: "Write your prompt", desc: "Enter a system prompt and user message. Use templates to save and reuse your best setups." },
+                { step: "02", icon: "select_all", title: "Pick your models", desc: "Select any combination of Claude, GPT, Gemini, and more. One click enables a model." },
+                { step: "03", icon: "compare", title: "Compare & score", desc: "All responses arrive together. Score them, view word-level diffs, save the run." },
+              ].map((s) => (
+                <div key={s.step} className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <span className="font-mono text-3xl font-medium text-primary/30 leading-none">{s.step}</span>
+                    <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center">
+                      <span className="material-symbols-outlined text-primary text-[16px]" style={{ fontVariationSettings: "'FILL' 1" }}>{s.icon}</span>
                     </div>
-                    <h3 className="font-headline font-bold text-lg text-on-surface tracking-tight">{s.title}</h3>
-                    <p className="text-on-surface-variant text-sm leading-relaxed">{s.desc}</p>
                   </div>
-                ))}
-              </div>
+                  <h3 className="font-headline font-bold text-base text-on-surface">{s.title}</h3>
+                  <p className="text-on-surface-variant text-sm leading-relaxed">{s.desc}</p>
+                </div>
+              ))}
             </div>
           </div>
         </div>
       </section>
 
       {/* Bottom CTA */}
-      <section className="px-6 py-20 text-center">
-        <div className="max-w-2xl mx-auto space-y-6">
-          <h2 className="font-headline font-extrabold tracking-tighter text-5xl text-on-surface">
-            Ready to find your{" "}
-            <span className="bg-gradient-to-r from-primary to-primary-container bg-clip-text text-transparent">
-              best model?
-            </span>
-          </h2>
-          <p className="text-on-surface-variant text-lg">
-            Start with the demo — no account needed. Upgrade when you&apos;re ready.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
-            <Link
-              href="/playground?demo=true"
-              className="inline-flex items-center justify-center gap-2 text-on-primary px-8 py-3.5 rounded-2xl font-black bg-gradient-to-r from-primary to-primary-container shadow-[0_10px_30px_rgba(160,58,15,0.3)] hover:shadow-[0_15px_40px_rgba(160,58,15,0.4)] hover:-translate-y-0.5 transition-all duration-300 text-base"
-            >
-              <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>play_arrow</span>
-              Try the demo
-            </Link>
-            <Link
-              href="/signup"
-              className="inline-flex items-center justify-center gap-2 glass-panel ghost-border text-on-surface px-8 py-3.5 rounded-2xl font-bold hover:-translate-y-0.5 transition-all duration-300 text-base"
-            >
-              Create an account
-              <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
-            </Link>
+      <section className="px-6 py-20">
+        <div className="max-w-2xl mx-auto console-panel rounded-xl p-10 text-center relative overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
+          <div className="absolute inset-0 bg-primary/3 pointer-events-none" />
+          <div className="relative space-y-6">
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <span className="led led-active" />
+              <span className="console-label text-primary">Ready to deploy</span>
+            </div>
+            <h2 className="font-headline font-extrabold tracking-tighter text-4xl text-on-surface">
+              Find your best model.{" "}
+              <span className="text-primary" style={{ textShadow: "0 0 30px rgba(0,212,255,0.35)" }}>
+                Fast.
+              </span>
+            </h2>
+            <p className="text-on-surface-variant">
+              Start with the demo — no account needed. Upgrade when you&apos;re ready.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
+              <Link
+                href="/playground?demo=true"
+                className="inline-flex items-center justify-center gap-2 bg-primary text-on-primary px-8 py-3.5 rounded-lg font-mono font-bold text-sm uppercase tracking-wider glow-primary transition-all"
+              >
+                <span className="material-symbols-outlined text-[16px]" style={{ fontVariationSettings: "'FILL' 1" }}>play_arrow</span>
+                Try the demo
+              </Link>
+              <Link
+                href="/signup"
+                className="inline-flex items-center justify-center gap-2 bg-surface-container border border-[rgba(255,255,255,0.1)] text-on-surface px-8 py-3.5 rounded-lg font-mono font-medium text-sm uppercase tracking-wider hover:border-[rgba(255,255,255,0.2)] transition-all"
+              >
+                Create account
+                <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+              </Link>
+            </div>
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-surface-container-low/30 backdrop-blur-xl ghost-border border-t-0 px-6 py-8">
+      <footer className="border-t border-[rgba(255,255,255,0.06)] px-6 py-6">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-primary to-primary-container flex items-center justify-center">
-              <span className="material-symbols-outlined text-on-primary text-[12px]" style={{ fontVariationSettings: "'FILL' 1" }}>filter_vintage</span>
+            <div className="w-5 h-5 rounded overflow-hidden">
+              <Image src="/prism-logo.png" alt="Prism" width={20} height={20} className="object-cover" />
             </div>
-            <span className="font-headline font-black text-sm bg-gradient-to-r from-orange-500 to-amber-600 bg-clip-text text-transparent">
-              Prism AI
-            </span>
+            <span className="font-mono text-xs tracking-widest text-on-surface-variant uppercase">Prism AI</span>
           </div>
-          <p className="text-xs text-outline">
+          <p className="console-label">
             © {new Date().getFullYear()} Prism AI · Built for developers who care about output quality.
           </p>
-          <div className="flex items-center gap-4 text-xs text-outline">
-            <Link href="/login" className="hover:text-on-surface transition-colors">Sign in</Link>
-            <Link href="/signup" className="hover:text-on-surface transition-colors">Sign up</Link>
+          <div className="flex items-center gap-4">
+            <Link href="/login" className="console-label hover:text-on-surface transition-colors">Sign in</Link>
+            <Link href="/signup" className="console-label hover:text-on-surface transition-colors">Sign up</Link>
           </div>
         </div>
       </footer>

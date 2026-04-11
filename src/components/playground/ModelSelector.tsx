@@ -26,37 +26,54 @@ export default function ModelSelector({ models, selected, onChange, availablePro
   }
 
   return (
-    <div className="space-y-2.5">
-      <p className="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Models</p>
-      <div className="flex bg-surface-container-low/50 backdrop-blur-md ghost-border rounded-2xl p-1.5 flex-wrap gap-1">
-        {models.map((model) => {
+    <div className="console-panel rounded-xl overflow-hidden">
+      {/* Panel header */}
+      <div className="px-4 py-2.5 border-b border-[rgba(255,255,255,0.07)] flex items-center gap-2">
+        <span className="material-symbols-outlined text-on-surface-variant text-[14px]">memory</span>
+        <span className="console-label">Models</span>
+        <span className="ml-auto console-label text-primary">{selected.length} selected</span>
+      </div>
+
+      {/* Channel buttons grid */}
+      <div className="p-3 grid grid-cols-2 gap-1.5">
+        {models.map((model, i) => {
           const checked = selected.includes(model.id);
           const hasKey = availableProviders.includes(model.provider);
           const providerLabel = PROVIDER_LABELS[model.provider] ?? model.provider;
+          const channelNum = String(i + 1).padStart(2, "0");
 
           return (
             <label
               key={model.id}
-              title={!hasKey ? `Add your ${providerLabel} API key in API Keys to enable this model` : undefined}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs select-none transition-all duration-200 ${
-                checked
-                  ? "bg-surface-container-lowest shadow-sm text-on-surface font-bold"
-                  : hasKey
-                    ? "text-on-surface-variant hover:text-on-surface font-medium"
-                    : "text-outline cursor-not-allowed"
+              title={!hasKey ? `Add your ${providerLabel} API key to enable` : undefined}
+              className={`relative flex flex-col gap-0.5 px-3 py-2.5 rounded-lg border select-none transition-all cursor-pointer ${
+                !hasKey
+                  ? "opacity-30 cursor-not-allowed border-[rgba(255,255,255,0.06)] bg-surface-container-lowest"
+                  : checked
+                    ? "border-primary/50 bg-primary/8 hover:bg-primary/12"
+                    : "border-[rgba(255,255,255,0.07)] bg-surface-container-lowest hover:border-[rgba(255,255,255,0.14)] hover:bg-surface-container"
               }`}
+              style={checked ? { boxShadow: "0 0 12px rgba(0,212,255,0.1)" } : undefined}
             >
               <input
                 type="checkbox"
                 className="sr-only"
                 checked={checked}
-                onChange={() => toggle(model.id)}
+                onChange={() => hasKey && toggle(model.id)}
                 disabled={!hasKey}
               />
-              {model.name}
-              {!hasKey && (
-                <span className="material-symbols-outlined text-[10px] text-outline/60" title={`Add ${providerLabel} key`}>lock</span>
-              )}
+              <div className="flex items-center justify-between">
+                <span className="font-mono text-[10px] text-on-surface-variant">{channelNum}</span>
+                <div className="flex items-center gap-1">
+                  {!hasKey && (
+                    <span className="material-symbols-outlined text-[10px] text-outline">lock</span>
+                  )}
+                  <span className={`led ${checked ? "led-active" : ""}`} style={{ width: "5px", height: "5px" }} />
+                </div>
+              </div>
+              <span className={`font-mono text-[11px] font-medium leading-tight ${checked ? "text-primary" : "text-on-surface"}`}>
+                {model.name}
+              </span>
             </label>
           );
         })}
