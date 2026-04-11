@@ -42,7 +42,17 @@ npm run lint       # ESLint
 - `lib/diff.ts` — LCS-based `wordDiff()` utility for the diff view
 - `lib/demo.ts` — demo session logic, rate limiting, draft persistence, and restore-run storage (all sessionStorage-backed)
 - `lib/providers/` — one file per provider (anthropic, openai, google, mistral, groq, xai). Each exports two functions: `call{Name}(modelId, systemPrompt, userMessage, apiKey, params?) → { response, latency_ms }` (non-streaming, kept for future batch use) and `stream{Name}(...)  → AsyncGenerator<string>` (yields raw token strings). All six providers accept `ModelParams` (temperature, top_p, max_tokens). Dispatched via `PROVIDER_STREAM_MAP` in `api/run/route.ts`.
-- `lib/personas.ts` — preset system prompt personas (data only, no UI logic)
+- `lib/personas.ts` — preset system prompt personas (data only, no UI logic). 24 personas across 5 categories. Shape:
+  ```ts
+  interface Persona {
+    id: string;         // kebab-case, unique
+    name: string;       // display name
+    category: "Education" | "Engineering" | "Support" | "Creative" | "Security";
+    description: string; // one-line shown in the UI picker
+    systemPrompt: string; // injected as system prompt when selected
+  }
+  ```
+  Categories and counts: Engineering (10), Education (5), Support (4), Creative (4), Security (1). Exported as `PERSONAS: Persona[]` and `PERSONA_CATEGORIES` const array. To add a persona, append to `PERSONAS` — no other files need updating.
 - `lib/injections.ts` — preset injection test strings (data only, no UI logic)
 - `lib/supabase/client.ts` — browser client (`createBrowserClient` from `@supabase/ssr`)
 - `lib/supabase/server.ts` — server client (`createServerClient`, reads/sets cookies via async Next.js `cookies()`)
