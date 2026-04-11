@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import type { ModelOption, ModelResponse, RunResult, ModelParams, ProviderName } from "@/lib/types";
+import type { ModelOption, ModelResponse, ModelParams, ProviderName } from "@/lib/types";
 import { getDemoSession, incrementDemoRun, saveDraft, getDraft, clearDraft, getRestoreRun, clearRestoreRun } from "@/lib/demo";
 import { createClient } from "@/lib/supabase/client";
 import Header from "@/components/shared/Header";
@@ -52,6 +52,7 @@ export default function PlaygroundClient({
   const [diffSelections, setDiffSelections] = useState<string[]>([]);
   const [showExport, setShowExport] = useState(false);
   const [modelParams, setModelParams] = useState<Record<string, ModelParams>>({});
+  const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     if (!isDemo) {
@@ -140,10 +141,13 @@ export default function PlaygroundClient({
       return;
     }
 
+    // Cancel any in-flight stream before starting a new one
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
     setError(null);
     setLoading(true);
-    setResponses([]);
-    setScores({});
     setSaved(false);
     setSaveError(null);
     setShowSaveForm(false);
@@ -151,10 +155,22 @@ export default function PlaygroundClient({
     setSaveTags("");
     setDiffMode("off");
     setDiffSelections([]);
+    setScores({});
+
+    // Initialize shell cards immediately so cards appear in loading state
+    const shells: ModelResponse[] = selectedModels.map((modelId) => ({
+      model: modelId,
+      response: "",
+      score: null,
+      latency_ms: 0,
+      streaming: true,
+    }));
+    setResponses(shells);
 
     try {
       const res = await fetch("/api/run", {
         method: "POST",
+        signal: controller.signal,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           systemPrompt,
@@ -165,10 +181,10 @@ export default function PlaygroundClient({
         }),
       });
 
-      const data: RunResult & { error?: string } = await res.json();
-
       if (!res.ok) {
-        setError(data.error ?? "Run failed");
+        const data = await res.json().catch(() => ({}));
+        setError((data as { error?: string }).error ?? "Run failed");
+        setResponses([]);
         return;
       }
 
@@ -177,9 +193,71 @@ export default function PlaygroundClient({
         setRunsUsed(updated.runsUsed);
       }
 
-      setResponses(data.responses);
-    } catch {
+      // Read NDJSON stream
+      const reader = res.body!.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      const runStart = Date.now();
+      const ttfts: Record<string, number> = {};
+
+      setLoading(false); // cards are visible; stop the full-screen spinner
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() ?? ""; // keep incomplete last line
+
+        for (const line of lines) {
+          if (!line.trim()) continue;
+          try {
+            const chunk = JSON.parse(line) as {
+              model: string;
+              token?: string;
+              done?: boolean;
+              latency_ms?: number;
+              error?: string;
+            };
+
+            if (chunk.token !== undefined) {
+              // First token — record TTFT
+              if (ttfts[chunk.model] === undefined) {
+                ttfts[chunk.model] = Date.now() - runStart;
+              }
+              setResponses((prev) =>
+                prev.map((r) =>
+                  r.model === chunk.model
+                    ? { ...r, response: r.response + chunk.token }
+                    : r
+                )
+              );
+            } else if (chunk.done) {
+              setResponses((prev) => {
+                const updated = prev.map((r) =>
+                  r.model === chunk.model
+                    ? {
+                        ...r,
+                        streaming: false,
+                        latency_ms: chunk.latency_ms ?? 0,
+                        ttft: ttfts[chunk.model],
+                        ...(chunk.error ? { error: chunk.error, response: "" } : {}),
+                      }
+                    : r
+                );
+                return updated;
+              });
+            }
+          } catch {
+            // Malformed line — skip
+          }
+        }
+      }
+    } catch (err) {
+      if ((err as Error).name === "AbortError") return; // intentional cancel
       setError("Network error. Please try again.");
+      setResponses([]);
     } finally {
       setLoading(false);
     }
@@ -498,6 +576,11 @@ export default function PlaygroundClient({
                       ? Math.min(...successfulResponses.map((r) => r.latency_ms))
                       : 0;
                     const showLatencyBars = successfulResponses.length > 1;
+                    // Fastest = lowest TTFT among models that have received at least one token
+                    const respondedModels = responses.filter((r) => r.ttft !== undefined);
+                    const minTTFT = respondedModels.length
+                      ? Math.min(...respondedModels.map((r) => r.ttft!))
+                      : null;
 
                     return (
                       <div
@@ -543,7 +626,8 @@ export default function PlaygroundClient({
                                 isDemo={isDemo}
                                 inputText={systemPrompt ? `${systemPrompt}\n${userMessage}` : userMessage}
                                 minLatency={showLatencyBars ? minLatency : undefined}
-                                isFastest={showLatencyBars && r.latency_ms === minLatency && !r.error}
+                                isFastest={minTTFT !== null && r.ttft === minTTFT && !r.error}
+                                streaming={r.streaming}
                               />
                             </div>
                           );

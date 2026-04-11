@@ -26,3 +26,31 @@ export async function callAnthropic(
 
   return { response, latency_ms };
 }
+
+export async function* streamAnthropic(
+  modelId: string,
+  systemPrompt: string,
+  userMessage: string,
+  apiKey: string,
+  params?: ModelParams
+): AsyncGenerator<string, void, void> {
+  const client = new Anthropic({ apiKey });
+
+  const stream = client.messages.stream({
+    model: modelId,
+    max_tokens: params?.max_tokens ?? 4096,
+    system: systemPrompt || undefined,
+    messages: [{ role: "user", content: userMessage }],
+    ...(params?.temperature !== undefined && { temperature: params.temperature }),
+    ...(params?.top_p !== undefined && { top_p: params.top_p }),
+  });
+
+  for await (const event of stream) {
+    if (
+      event.type === "content_block_delta" &&
+      event.delta.type === "text_delta"
+    ) {
+      yield event.delta.text;
+    }
+  }
+}

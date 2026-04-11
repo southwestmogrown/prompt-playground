@@ -12,9 +12,7 @@ export async function callOpenAI(
   const start = Date.now();
 
   const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [];
-  if (systemPrompt) {
-    messages.push({ role: "system", content: systemPrompt });
-  }
+  if (systemPrompt) messages.push({ role: "system", content: systemPrompt });
   messages.push({ role: "user", content: userMessage });
 
   const completion = await client.chat.completions.create({
@@ -25,8 +23,33 @@ export async function callOpenAI(
     ...(params?.top_p !== undefined && { top_p: params.top_p }),
   });
 
-  const latency_ms = Date.now() - start;
-  const response = completion.choices[0]?.message?.content ?? "";
+  return { response: completion.choices[0]?.message?.content ?? "", latency_ms: Date.now() - start };
+}
 
-  return { response, latency_ms };
+export async function* streamOpenAI(
+  modelId: string,
+  systemPrompt: string,
+  userMessage: string,
+  apiKey: string,
+  params?: ModelParams
+): AsyncGenerator<string, void, void> {
+  const client = new OpenAI({ apiKey });
+
+  const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [];
+  if (systemPrompt) messages.push({ role: "system", content: systemPrompt });
+  messages.push({ role: "user", content: userMessage });
+
+  const stream = await client.chat.completions.create({
+    model: modelId,
+    messages,
+    stream: true,
+    ...(params?.max_tokens !== undefined && { max_tokens: params.max_tokens }),
+    ...(params?.temperature !== undefined && { temperature: params.temperature }),
+    ...(params?.top_p !== undefined && { top_p: params.top_p }),
+  });
+
+  for await (const chunk of stream) {
+    const token = chunk.choices[0]?.delta?.content;
+    if (token) yield token;
+  }
 }

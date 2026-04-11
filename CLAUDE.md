@@ -29,7 +29,7 @@ npm run lint       # ESLint
 - `app/(auth)/login` and `app/(auth)/signup` — unauthenticated auth pages
 - `app/(dashboard)/playground/page.tsx` — playground (auth-guarded, `/playground`)
 - `app/(dashboard)/history/page.tsx` — saved runs, Server Component (`/history`)
-- `app/api/run/route.ts` — core run execution (POST: parallel model calls; DELETE: remove a run by `?id=` for the authenticated user)
+- `app/api/run/route.ts` — POST: returns a `ReadableStream` of NDJSON (`{ model, token }` per chunk; `{ model, done, latency_ms }` on completion; `{ model, done, error }` on failure). All models stream concurrently via `PROVIDER_STREAM_MAP`. Demo rate limit increments before stream opens to prevent races. DELETE: remove a run by `?id=`.
 - `app/api/history/route.ts` — GET paginated run history (`?limit=20&offset=N`); returns `{ runs, hasMore }`
 - `app/api/keys/route.ts` — CRUD for encrypted API keys
 - `app/api/templates/route.ts` — CRUD for prompt templates (GET, POST, PUT, DELETE)
@@ -41,7 +41,7 @@ npm run lint       # ESLint
 - `lib/pricing.ts` — per-model pricing table and `estimateCost()` for client-side cost estimation
 - `lib/diff.ts` — LCS-based `wordDiff()` utility for the diff view
 - `lib/demo.ts` — demo session logic, rate limiting, draft persistence, and restore-run storage (all sessionStorage-backed)
-- `lib/providers/` — one file per provider (anthropic, openai, google, mistral, groq, xai). Uniform interface: `(modelId, systemPrompt, userMessage, apiKey, params?) → { response, latency_ms }`. All providers accept an optional `ModelParams` argument (temperature, top_p, max_tokens). Dispatched via `PROVIDER_MAP` in `api/run/route.ts` — adding a provider is one new file + one map entry.
+- `lib/providers/` — one file per provider (anthropic, openai, google, mistral, groq, xai). Each exports two functions: `call{Name}(modelId, systemPrompt, userMessage, apiKey, params?) → { response, latency_ms }` (non-streaming, kept for future batch use) and `stream{Name}(...)  → AsyncGenerator<string>` (yields raw token strings). All six providers accept `ModelParams` (temperature, top_p, max_tokens). Dispatched via `PROVIDER_STREAM_MAP` in `api/run/route.ts`.
 - `lib/personas.ts` — preset system prompt personas (data only, no UI logic)
 - `lib/injections.ts` — preset injection test strings (data only, no UI logic)
 - `lib/supabase/client.ts` — browser client (`createBrowserClient` from `@supabase/ssr`)
@@ -49,7 +49,7 @@ npm run lint       # ESLint
 
 ### Key Component Files
 
-- `components/playground/ResponseCard.tsx` — per-model response card; shows response text (markdown rendered via react-markdown), latency bar, cost estimate, score input, "Fastest" badge, and expand/collapse toggle
+- `components/playground/ResponseCard.tsx` — per-model response card; accepts `streaming` prop. While streaming: LED pulses, latency shows `…`, bar shows animated pulse, blinking cursor appended to text, copy/score hidden. On completion: fixed latency bar, copy and score appear. "Fastest" badge driven by TTFT (time-to-first-token), not completion time.
 - `components/playground/DiffView.tsx` — side-by-side word-level diff between two `ModelResponse` objects
 - `components/playground/TemplateSelector.tsx` — save/load/edit/delete named templates; stores system_prompt, user_message, and selected_models; inline edit form
 - `components/playground/ModelSelector.tsx` — model chip selector; models without a stored API key are disabled with a lock icon and tooltip; `availableProviders` prop gates selection
@@ -86,14 +86,14 @@ No orange. No glassmorphism gradients. Sharp corners preferred on interactive el
 
 ### /api/run Route Behavior
 
-- All selected models execute in **parallel** (`Promise.all`)
-- Each model call is wrapped in try/catch — one failure does not block others
-- Latency measured per model with `Date.now()`
-- Provider dispatch via `PROVIDER_MAP: Record<ProviderName, ProviderFn>` — exhaustiveness enforced by TypeScript
-- `RunRequest.parameters` is an optional `Record<string, ModelParams>` keyed by model ID; each provider receives only its own params slice
-- Demo runs use `DEMO_ANTHROPIC_KEY` and validate against `DEMO_RUN_LIMIT` (server-side, per IP)
-- Auth runs validate Supabase session before decrypting and using stored keys
-- `DELETE /api/run?id=<uuid>` — validates session, deletes the run scoped to `user_id` (RLS enforces ownership)
+- POST returns a `ReadableStream`; all models stream concurrently via `Promise.all` inside `ReadableStream.start`
+- Each model generator is wrapped in try/catch — one failure emits an error chunk without blocking others
+- Route emits NDJSON: `{ model, token }` per token, `{ model, done, latency_ms }` on completion, `{ model, done, error, latency_ms }` on failure
+- Provider dispatch via `PROVIDER_STREAM_MAP: Record<ProviderName, ProviderStreamFn>`
+- `RunRequest.parameters` is an optional `Record<string, ModelParams>` keyed by model ID
+- Demo rate limit increments **before** stream opens (prevents race condition with concurrent requests)
+- Auth runs validate Supabase session and decrypt keys before stream opens
+- `DELETE /api/run?id=<uuid>` — validates session, deletes the run scoped to `user_id`
 
 ### API Key Storage
 
@@ -108,9 +108,9 @@ Keys are encrypted with AES-256-GCM (Node `crypto.createCipheriv`) using `ENCRYP
 
 ### Adding a Provider
 
-1. `src/lib/providers/{name}.ts` — export `call{Name}(modelId, systemPrompt, userMessage, apiKey, params?: ModelParams) → { response, latency_ms }`
+1. `src/lib/providers/{name}.ts` — export `call{Name}(..., params?: ModelParams) → { response, latency_ms }` and `stream{Name}(...) → AsyncGenerator<string>`
 2. `src/lib/types.ts` — add to `ProviderName` union
-3. `src/app/api/run/route.ts` — add to `PROVIDER_MAP`
+3. `src/app/api/run/route.ts` — add to `PROVIDER_STREAM_MAP`
 4. `src/lib/models.ts` — add models to `SUPPORTED_MODELS`
 5. `src/app/api/keys/route.ts` — add to provider allowlist
 6. `src/components/shared/KeyManager.tsx` — add to `PROVIDER_LABELS` and the dropdown

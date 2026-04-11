@@ -27,6 +27,8 @@ export interface ModelResponse {
   score: number | null;
   latency_ms: number;
   error?: string;
+  streaming?: boolean;
+  ttft?: number;
 }
 
 export interface Run {

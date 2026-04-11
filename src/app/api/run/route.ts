@@ -1,24 +1,30 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { createClient } from "@/lib/supabase/server";
-import { callAnthropic } from "@/lib/providers/anthropic";
-import { callOpenAI } from "@/lib/providers/openai";
-import { callGoogle } from "@/lib/providers/google";
-import { callMistral } from "@/lib/providers/mistral";
-import { callGroq } from "@/lib/providers/groq";
-import { callXAI } from "@/lib/providers/xai";
+import { streamAnthropic } from "@/lib/providers/anthropic";
+import { streamOpenAI } from "@/lib/providers/openai";
+import { streamGoogle } from "@/lib/providers/google";
+import { streamMistral } from "@/lib/providers/mistral";
+import { streamGroq } from "@/lib/providers/groq";
+import { streamXAI } from "@/lib/providers/xai";
 import { SUPPORTED_MODELS, DEMO_MODELS } from "@/lib/models";
-import type { RunRequest, ModelResponse, ModelParams, ProviderName } from "@/lib/types";
+import type { RunRequest, ModelParams, ProviderName } from "@/lib/types";
 
-type ProviderFn = (modelId: string, systemPrompt: string, userMessage: string, apiKey: string, params?: ModelParams) => Promise<{ response: string; latency_ms: number }>;
+type ProviderStreamFn = (
+  modelId: string,
+  systemPrompt: string,
+  userMessage: string,
+  apiKey: string,
+  params?: ModelParams
+) => AsyncGenerator<string, void, void>;
 
-const PROVIDER_MAP: Record<ProviderName, ProviderFn> = {
-  anthropic: callAnthropic,
-  openai: callOpenAI,
-  google: callGoogle,
-  mistral: callMistral,
-  groq: callGroq,
-  xai: callXAI,
+const PROVIDER_STREAM_MAP: Record<ProviderName, ProviderStreamFn> = {
+  anthropic: streamAnthropic,
+  openai:    streamOpenAI,
+  google:    streamGoogle,
+  mistral:   streamMistral,
+  groq:      streamGroq,
+  xai:       streamXAI,
 };
 
 const rawDemoRunLimit = process.env.DEMO_RUN_LIMIT;
@@ -26,11 +32,8 @@ const parsedDemoRunLimit = rawDemoRunLimit ? parseInt(rawDemoRunLimit, 10) : NaN
 const DEMO_RUN_LIMIT =
   Number.isNaN(parsedDemoRunLimit) || parsedDemoRunLimit <= 0 ? 3 : parsedDemoRunLimit;
 
-// In-memory per-IP demo rate limiting (resets on server restart)
 const demoIpCounts = new Map<string, number>();
 
-// Derive and cache the encryption key once at module load — scrypt is intentionally
-// slow and must not be called on every request.
 const ENCRYPTION_SECRET = process.env.ENCRYPTION_SECRET;
 if (!ENCRYPTION_SECRET) {
   throw new Error("ENCRYPTION_SECRET environment variable is not set");
@@ -39,9 +42,7 @@ const ENCRYPTION_KEY: Buffer = crypto.scryptSync(ENCRYPTION_SECRET, "salt", 32);
 
 function decryptApiKey(encrypted: string): string {
   const parts = encrypted.split(":");
-  if (parts.length !== 3) {
-    throw new Error("Invalid encrypted key format");
-  }
+  if (parts.length !== 3) throw new Error("Invalid encrypted key format");
   const [ivHex, authTagHex, encryptedHex] = parts;
   const decipher = crypto.createDecipheriv(
     "aes-256-gcm",
@@ -55,29 +56,60 @@ function decryptApiKey(encrypted: string): string {
   );
 }
 
-async function callModel(
-  modelId: string,
+function buildStream(
+  models: string[],
   systemPrompt: string,
   userMessage: string,
-  apiKey: string,
-  params?: ModelParams
-): Promise<ModelResponse> {
-  const model = SUPPORTED_MODELS.find((m) => m.id === modelId);
-  if (!model) {
-    return { model: modelId, response: "", score: null, latency_ms: 0, error: "Unknown model" };
-  }
-  try {
-    const result = await PROVIDER_MAP[model.provider](modelId, systemPrompt, userMessage, apiKey, params);
-    return { model: modelId, response: result.response, score: null, latency_ms: result.latency_ms };
-  } catch (err) {
-    return {
-      model: modelId,
-      response: "",
-      score: null,
-      latency_ms: 0,
-      error: err instanceof Error ? err.message : "Unknown error",
-    };
-  }
+  keyMap: Record<string, string>,
+  parameters: Record<string, ModelParams>
+): ReadableStream {
+  const encode = (obj: object) =>
+    new TextEncoder().encode(JSON.stringify(obj) + "\n");
+
+  return new ReadableStream({
+    async start(controller) {
+      await Promise.all(
+        models.map(async (modelId) => {
+          const model = SUPPORTED_MODELS.find((m) => m.id === modelId);
+          if (!model) {
+            controller.enqueue(
+              encode({ model: modelId, done: true, latency_ms: 0, error: "Unknown model" })
+            );
+            return;
+          }
+          const apiKey = keyMap[model.provider];
+          if (!apiKey) {
+            controller.enqueue(
+              encode({ model: modelId, done: true, latency_ms: 0, error: `No ${model.provider} API key configured` })
+            );
+            return;
+          }
+          const start = Date.now();
+          try {
+            const gen = PROVIDER_STREAM_MAP[model.provider](
+              modelId, systemPrompt, userMessage, apiKey, parameters[modelId]
+            );
+            for await (const token of gen) {
+              controller.enqueue(encode({ model: modelId, token }));
+            }
+            controller.enqueue(
+              encode({ model: modelId, done: true, latency_ms: Date.now() - start })
+            );
+          } catch (err) {
+            controller.enqueue(
+              encode({
+                model: modelId,
+                done: true,
+                latency_ms: Date.now() - start,
+                error: err instanceof Error ? err.message : "Unknown error",
+              })
+            );
+          }
+        })
+      );
+      controller.close();
+    },
+  });
 }
 
 export async function DELETE(request: NextRequest) {
@@ -113,7 +145,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
   }
 
-  // Deduplicate model IDs to prevent duplicate responses and React key collisions.
   const uniqueModels = [...new Set(models)];
 
   if (isDemo) {
@@ -123,6 +154,8 @@ export async function POST(request: NextRequest) {
     if (count >= DEMO_RUN_LIMIT) {
       return NextResponse.json({ error: "Demo limit reached" }, { status: 429 });
     }
+    // Increment before opening the stream to prevent race conditions
+    demoIpCounts.set(ip, count + 1);
 
     const demoKey = process.env.DEMO_ANTHROPIC_KEY;
     if (!demoKey) {
@@ -135,20 +168,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "No valid demo models selected" }, { status: 400 });
     }
 
-    const responses = await Promise.all(
-      validModels.map((modelId) =>
-        callModel(modelId, systemPrompt, userMessage, demoKey, parameters[modelId])
-      )
+    const keyMap = Object.fromEntries(
+      DEMO_MODELS.map((m) => [m.provider, demoKey])
     );
-    demoIpCounts.set(ip, count + 1);
-    return NextResponse.json({ responses });
+
+    const stream = buildStream(validModels, systemPrompt, userMessage, keyMap, parameters);
+    return new Response(stream, {
+      headers: { "Content-Type": "application/x-ndjson", "Cache-Control": "no-cache" },
+    });
   }
 
   // Authenticated mode
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -157,6 +189,7 @@ export async function POST(request: NextRequest) {
     .from("api_keys")
     .select("provider, encrypted_key")
     .eq("user_id", user.id);
+
   if (apiKeysError) {
     console.error("Failed to fetch API keys for user", user.id, apiKeysError);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
@@ -167,36 +200,12 @@ export async function POST(request: NextRequest) {
     try {
       keyMap[k.provider] = decryptApiKey(k.encrypted_key);
     } catch (err) {
-      // Log corrupt keys so they're distinguishable from simply missing keys.
       console.warn("Failed to decrypt key for provider", k.provider, err instanceof Error ? err.message : err);
     }
   }
 
-  const responses = await Promise.all(
-    uniqueModels.map((modelId) => {
-      const model = SUPPORTED_MODELS.find((m) => m.id === modelId);
-      if (!model) {
-        return Promise.resolve<ModelResponse>({
-          model: modelId,
-          response: "",
-          score: null,
-          latency_ms: 0,
-          error: "Unknown model",
-        });
-      }
-      const apiKey = keyMap[model.provider];
-      if (!apiKey) {
-        return Promise.resolve<ModelResponse>({
-          model: modelId,
-          response: "",
-          score: null,
-          latency_ms: 0,
-          error: `No ${model.provider} API key configured`,
-        });
-      }
-      return callModel(modelId, systemPrompt, userMessage, apiKey, parameters[modelId]);
-    })
-  );
-
-  return NextResponse.json({ responses });
+  const stream = buildStream(uniqueModels, systemPrompt, userMessage, keyMap, parameters);
+  return new Response(stream, {
+    headers: { "Content-Type": "application/x-ndjson", "Cache-Control": "no-cache" },
+  });
 }
