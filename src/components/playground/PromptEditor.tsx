@@ -4,6 +4,7 @@ interface PromptEditorProps {
   onSystemPromptChange: (v: string) => void;
   onUserMessageChange: (v: string) => void;
   disabled?: boolean;
+  systemPromptRef?: React.RefObject<HTMLTextAreaElement | null>;
 }
 
 export default function PromptEditor({
@@ -12,6 +13,7 @@ export default function PromptEditor({
   onSystemPromptChange,
   onUserMessageChange,
   disabled,
+  systemPromptRef,
 }: PromptEditorProps) {
   return (
     <div className="console-panel rounded-xl overflow-hidden">
@@ -22,6 +24,7 @@ export default function PromptEditor({
           <span className="normal-case font-normal text-outline">(optional)</span>
         </label>
         <textarea
+          ref={systemPromptRef}
           rows={3}
           placeholder="You are a helpful assistant…"
           value={systemPrompt}

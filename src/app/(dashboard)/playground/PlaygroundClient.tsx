@@ -53,6 +53,7 @@ export default function PlaygroundClient({
   const [showExport, setShowExport] = useState(false);
   const [modelParams, setModelParams] = useState<Record<string, ModelParams>>({});
   const abortRef = useRef<AbortController | null>(null);
+  const systemPromptRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     if (!isDemo) {
@@ -344,6 +345,7 @@ export default function PlaygroundClient({
               <PersonaSelector
                 systemPrompt={systemPrompt}
                 onLoad={(prompt) => setSystemPrompt(prompt)}
+                systemPromptRef={systemPromptRef}
               />
 
               <PromptEditor
@@ -352,6 +354,7 @@ export default function PlaygroundClient({
                 onSystemPromptChange={setSystemPrompt}
                 onUserMessageChange={setUserMessage}
                 disabled={loading}
+                systemPromptRef={systemPromptRef}
               />
 
               <InjectionPanel
