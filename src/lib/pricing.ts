@@ -7,18 +7,12 @@ const MODEL_PRICING: Partial<Record<string, ModelPricing>> = {
   "claude-opus-4-6":           { inputPer1M: 15.00, outputPer1M: 75.00 },
   "claude-sonnet-4-6":         { inputPer1M: 3.00,  outputPer1M: 15.00 },
   "claude-haiku-4-5-20251001": { inputPer1M: 0.80,  outputPer1M: 4.00  },
-  "gpt-4.1":                   { inputPer1M: 2.00,  outputPer1M: 8.00  },
-  "gpt-4o":                    { inputPer1M: 2.50,  outputPer1M: 10.00 },
-  "gpt-4o-mini":               { inputPer1M: 0.15,  outputPer1M: 0.60  },
-  "o3-mini":                   { inputPer1M: 1.10,  outputPer1M: 4.40  },
-  "gemini-2.0-flash":          { inputPer1M: 0.10,  outputPer1M: 0.40  },
-  "gemini-1.5-pro":            { inputPer1M: 1.25,  outputPer1M: 5.00  },
-  "mistral-large-latest":      { inputPer1M: 2.00,  outputPer1M: 6.00  },
-  "mistral-small-latest":      { inputPer1M: 0.10,  outputPer1M: 0.30  },
-  "llama-3.3-70b-versatile":   { inputPer1M: 0.59,  outputPer1M: 0.79  },
-  "llama-3.1-8b-instant":      { inputPer1M: 0.05,  outputPer1M: 0.08  },
-  "grok-3":                    { inputPer1M: 3.00,  outputPer1M: 15.00 },
-  "grok-3-mini":               { inputPer1M: 0.30,  outputPer1M: 0.50  },
+  "gpt-5.4":                                        { inputPer1M: 2.50,  outputPer1M: 15.00 },
+  "gpt-5.4-mini":                                   { inputPer1M: 0.75,  outputPer1M: 4.50  },
+  // gemini-3.1-pro-preview / gemini-3.1-flash-lite-preview: pricing not yet published (preview)
+  "mistral-small-4-0-26-03":                        { inputPer1M: 0.15,  outputPer1M: 0.60  },
+  "meta-llama/llama-4-scout-17b-16e-instruct":      { inputPer1M: 0.11,  outputPer1M: 0.34  },
+  // grok-4.1: pricing not yet confirmed in public docs
 };
 
 // Character-based token approximation (~4 chars per token for English text).

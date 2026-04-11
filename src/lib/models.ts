@@ -23,84 +23,58 @@ export const SUPPORTED_MODELS: ModelOption[] = [
 
   // OpenAI
   {
-    id: "gpt-4.1",
-    name: "GPT-4.1",
+    id: "gpt-5.4",
+    name: "GPT-5.4",
     provider: "openai",
-    contextWindow: 1047576,
+    contextWindow: 1000000,
   },
   {
-    id: "gpt-4o",
-    name: "GPT-4o",
+    id: "gpt-5.4-mini",
+    name: "GPT-5.4 Mini",
     provider: "openai",
-    contextWindow: 128000,
-  },
-  {
-    id: "gpt-4o-mini",
-    name: "GPT-4o Mini",
-    provider: "openai",
-    contextWindow: 128000,
-  },
-  {
-    id: "o3-mini",
-    name: "o3-mini",
-    provider: "openai",
-    contextWindow: 200000,
+    contextWindow: 400000,
   },
 
   // Google Gemini
   {
-    id: "gemini-2.0-flash",
-    name: "Gemini 2.0 Flash",
+    id: "gemini-3.1-pro-preview",
+    name: "Gemini 3.1 Pro",
     provider: "google",
     contextWindow: 1000000,
   },
   {
-    id: "gemini-1.5-pro",
-    name: "Gemini 1.5 Pro",
+    id: "gemini-3.1-flash-lite-preview",
+    name: "Gemini 3.1 Flash Lite",
     provider: "google",
-    contextWindow: 2000000,
+    contextWindow: 1000000,
   },
 
   // Mistral
+  // Verified ID: mistral-small-4-0-26-03 (released March 2026; "mistral-small-4" alone is not a valid alias)
   {
-    id: "mistral-large-latest",
-    name: "Mistral Large",
+    id: "mistral-small-4-0-26-03",
+    name: "Mistral Small 4",
     provider: "mistral",
-    contextWindow: 128000,
-  },
-  {
-    id: "mistral-small-latest",
-    name: "Mistral Small",
-    provider: "mistral",
-    contextWindow: 128000,
+    contextWindow: 256000,
   },
 
   // Groq (Meta Llama)
+  // Llama 4 Maverick deprecated on Groq as of Feb 20, 2026 — Scout only
+  // Groq Llama 4 IDs use full paths unlike legacy short-form IDs
   {
-    id: "llama-3.3-70b-versatile",
-    name: "Llama 3.3 70B",
+    id: "meta-llama/llama-4-scout-17b-16e-instruct",
+    name: "Llama 4 Scout",
     provider: "groq",
-    contextWindow: 128000,
-  },
-  {
-    id: "llama-3.1-8b-instant",
-    name: "Llama 3.1 8B",
-    provider: "groq",
-    contextWindow: 128000,
+    contextWindow: 131072,
   },
 
   // xAI Grok
+  // User supplied "grok-4.20" — verified ID is grok-4.1 (GA as of 2026)
   {
-    id: "grok-3",
-    name: "Grok 3",
+    id: "grok-4.1",
+    name: "Grok 4.1",
     provider: "xai",
-    contextWindow: 131072,
-  },
-  {
-    id: "grok-3-mini",
-    name: "Grok 3 Mini",
-    provider: "xai",
-    contextWindow: 131072,
+    contextWindow: 256000,
   },
 ];
 
