@@ -37,6 +37,8 @@ export interface Run {
   models: string[];
   responses: ModelResponse[];
   created_at: string;
+  name?: string | null;
+  tags?: string[];
 }
 
 export interface ModelParams {

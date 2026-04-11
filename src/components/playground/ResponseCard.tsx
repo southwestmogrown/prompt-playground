@@ -28,6 +28,13 @@ export default function ResponseCard({
   isFastest,
 }: ResponseCardProps) {
   const [expanded, setExpanded] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  async function handleCopy() {
+    await navigator.clipboard.writeText(response.response);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  }
   const cost = !response.error
     ? estimateCost(response.model, inputText, response.response)
     : null;
@@ -63,6 +70,17 @@ export default function ResponseCard({
           <span className="font-mono text-xs text-primary border border-primary/25 bg-primary/8 px-2 py-0.5 rounded">
             {response.latency_ms}ms
           </span>
+          {hasResponse && (
+            <button
+              onClick={handleCopy}
+              title="Copy response"
+              className="w-6 h-6 rounded flex items-center justify-center bg-surface-container hover:bg-surface-container-high transition-colors border border-[rgba(255,255,255,0.07)]"
+            >
+              <span className={`material-symbols-outlined text-[13px] transition-colors duration-200 ${copied ? "text-green" : "text-on-surface-variant"}`}>
+                {copied ? "check" : "content_copy"}
+              </span>
+            </button>
+          )}
           <button
             onClick={() => setExpanded((e) => !e)}
             title={expanded ? "Collapse" : "Expand"}

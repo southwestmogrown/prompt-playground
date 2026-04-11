@@ -19,10 +19,10 @@ export default async function HistoryPage() {
 
   const { data: runs, error: runsError } = await supabase
     .from("runs")
-    .select("id, created_at, models, system_prompt, user_message, responses")
+    .select("id, created_at, models, system_prompt, user_message, responses, name, tags")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false })
-    .limit(50);
+    .range(0, 19);
 
   return (
     <div className="min-h-screen bg-grid text-on-surface">

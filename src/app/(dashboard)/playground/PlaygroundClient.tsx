@@ -45,6 +45,9 @@ export default function PlaygroundClient({
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [showSaveForm, setShowSaveForm] = useState(false);
+  const [saveName, setSaveName] = useState("");
+  const [saveTags, setSaveTags] = useState("");
   const [diffMode, setDiffMode] = useState<"off" | "selecting" | "viewing">("off");
   const [diffSelections, setDiffSelections] = useState<string[]>([]);
   const [showExport, setShowExport] = useState(false);
@@ -143,6 +146,9 @@ export default function PlaygroundClient({
     setScores({});
     setSaved(false);
     setSaveError(null);
+    setShowSaveForm(false);
+    setSaveName("");
+    setSaveTags("");
     setDiffMode("off");
     setDiffSelections([]);
 
@@ -179,6 +185,12 @@ export default function PlaygroundClient({
     }
   }
 
+  function openSaveForm() {
+    setSaveName(userMessage.slice(0, 60).trim());
+    setSaveTags("");
+    setShowSaveForm(true);
+  }
+
   async function handleSave() {
     setSaving(true);
     setSaveError(null);
@@ -187,6 +199,10 @@ export default function PlaygroundClient({
         ...r,
         score: scores[r.model] ?? null,
       }));
+      const parsedTags = saveTags
+        .split(",")
+        .map((t) => t.trim())
+        .filter(Boolean);
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
       const { error: dbError } = await supabase.from("runs").insert({
@@ -195,11 +211,14 @@ export default function PlaygroundClient({
         user_message: userMessage,
         models: selectedModels,
         responses: responsesWithScores,
+        name: saveName.trim() || null,
+        tags: parsedTags,
       });
       if (dbError) {
         setSaveError(dbError.message);
       } else {
         setSaved(true);
+        setShowSaveForm(false);
       }
     } catch {
       setSaveError("Network error. Please try again.");
@@ -344,21 +363,20 @@ export default function PlaygroundClient({
                 <div className="space-y-4">
                   {/* Action bar */}
                   <div className="flex items-center gap-2 flex-wrap">
-                    {!isDemo && (
+                    {!isDemo && !saved && !showSaveForm && (
                       <button
-                        onClick={handleSave}
-                        disabled={saving || saved}
-                        className={`inline-flex items-center gap-1.5 py-2 px-3 rounded-lg console-label border transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
-                          saved
-                            ? "border-green/40 bg-green/8 text-green"
-                            : "border-[rgba(255,255,255,0.1)] bg-surface-container hover:border-[rgba(255,255,255,0.18)] text-on-surface"
-                        }`}
+                        onClick={openSaveForm}
+                        className="inline-flex items-center gap-1.5 py-2 px-3 rounded-lg console-label border border-[rgba(255,255,255,0.1)] bg-surface-container hover:border-[rgba(255,255,255,0.18)] text-on-surface transition-all"
                       >
-                        <span className="material-symbols-outlined text-[13px]" style={{ fontVariationSettings: saved ? "'FILL' 1" : "'FILL' 0" }}>
-                          {saved ? "check_circle" : "save"}
-                        </span>
-                        {saving ? "Saving…" : saved ? "Saved" : "Save Run"}
+                        <span className="material-symbols-outlined text-[13px]">save</span>
+                        Save Run
                       </button>
+                    )}
+                    {!isDemo && saved && (
+                      <span className="inline-flex items-center gap-1.5 py-2 px-3 rounded-lg console-label border border-green/40 bg-green/8 text-green">
+                        <span className="material-symbols-outlined text-[13px]" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                        Saved
+                      </span>
                     )}
 
                     <button
@@ -414,6 +432,45 @@ export default function PlaygroundClient({
                     )}
                   </div>
 
+                  {/* Inline save form */}
+                  {showSaveForm && !saved && (
+                    <div className="console-panel rounded-xl px-4 py-3 flex flex-col gap-3">
+                      <p className="console-label text-on-surface font-semibold">Save run</p>
+                      <div className="flex flex-col gap-2">
+                        <input
+                          type="text"
+                          value={saveName}
+                          onChange={(e) => setSaveName(e.target.value)}
+                          placeholder="Name (optional)"
+                          className="w-full bg-surface-container-high border border-[rgba(255,255,255,0.07)] rounded-lg px-3 py-2 font-mono text-xs text-on-surface placeholder:text-outline focus:outline-none focus:border-primary/40"
+                        />
+                        <input
+                          type="text"
+                          value={saveTags}
+                          onChange={(e) => setSaveTags(e.target.value)}
+                          placeholder="Tags — comma separated (e.g. gpt4, creative)"
+                          className="w-full bg-surface-container-high border border-[rgba(255,255,255,0.07)] rounded-lg px-3 py-2 font-mono text-xs text-on-surface placeholder:text-outline focus:outline-none focus:border-primary/40"
+                        />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={handleSave}
+                          disabled={saving}
+                          className="inline-flex items-center gap-1.5 py-1.5 px-3 rounded-lg console-label bg-primary text-on-primary font-bold glow-primary disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                        >
+                          <span className="material-symbols-outlined text-[13px]">save</span>
+                          {saving ? "Saving…" : "Save"}
+                        </button>
+                        <button
+                          onClick={() => setShowSaveForm(false)}
+                          className="inline-flex items-center gap-1.5 py-1.5 px-3 rounded-lg console-label border border-[rgba(255,255,255,0.1)] bg-surface-container hover:bg-surface-container-high transition-colors"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Diff view */}
                   {diffMode === "viewing" && (() => {
                     const validResponses = responses.filter((r) => !r.error);
@@ -445,7 +502,7 @@ export default function PlaygroundClient({
                     return (
                       <div
                         className={`grid gap-4 ${
-                          responses.length === 1 ? "grid-cols-1" : "grid-cols-1 sm:grid-cols-2"
+                          responses.length === 1 ? "grid-cols-1" : "grid-cols-1 md:grid-cols-2"
                         }`}
                       >
                         {responses.map((r) => {

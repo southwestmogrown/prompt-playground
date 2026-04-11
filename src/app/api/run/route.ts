@@ -80,6 +80,31 @@ async function callModel(
   }
 }
 
+export async function DELETE(request: NextRequest) {
+  const runId = request.nextUrl.searchParams.get("id");
+  if (!runId) {
+    return NextResponse.json({ error: "Missing run id" }, { status: 400 });
+  }
+
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { error } = await supabase
+    .from("runs")
+    .delete()
+    .eq("id", runId)
+    .eq("user_id", user.id);
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  return NextResponse.json({ ok: true });
+}
+
 export async function POST(request: NextRequest) {
   const body: RunRequest = await request.json();
   const { systemPrompt = "", userMessage, models, isDemo, parameters = {} } = body;

@@ -8,6 +8,8 @@ import { saveRestoreRun } from "@/lib/demo";
 
 interface RunCardProps {
   run: Run;
+  onDelete: (id: string) => void;
+  onTagClick?: (tag: string) => void;
 }
 
 function formatDate(iso: string): string {
@@ -33,17 +35,30 @@ function modelProvider(id: string): string {
 }
 
 const PROVIDER_COLORS: Record<string, string> = {
-  anthropic: "bg-[#d97706]/10 text-[#d97706]",
+  anthropic: "bg-primary/10 text-primary",
   openai:    "bg-[#10a37f]/10 text-[#10a37f]",
   google:    "bg-[#4285f4]/10 text-[#4285f4]",
   mistral:   "bg-[#6a3cc9]/10 text-[#6a3cc9]",
-  groq:      "bg-primary/10 text-primary",
+  groq:      "bg-secondary/10 text-secondary",
   xai:       "bg-on-surface/10 text-on-surface",
 };
 
-export default function RunCard({ run }: RunCardProps) {
+export default function RunCard({ run, onDelete, onTagClick }: RunCardProps) {
   const router = useRouter();
   const [expanded, setExpanded] = useState(false);
+  const [confirming, setConfirming] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  async function handleDelete() {
+    const res = await fetch(`/api/run?id=${run.id}`, { method: "DELETE" });
+    if (res.ok) {
+      onDelete(run.id);
+    } else {
+      const body = await res.json().catch(() => ({}));
+      setDeleteError(body.error ?? "Delete failed");
+      setConfirming(false);
+    }
+  }
 
   function handleOpenInPlayground() {
     saveRestoreRun(run.system_prompt, run.user_message, run.models);
@@ -66,10 +81,17 @@ export default function RunCard({ run }: RunCardProps) {
       <div className="px-6 py-5">
         <div className="flex items-start gap-4">
           <div className="flex-1 min-w-0 space-y-3">
-            {/* User message preview */}
-            <p className="text-sm font-medium text-on-surface leading-snug">
-              {truncate(run.user_message, 140)}
-            </p>
+            {/* Name / user message preview */}
+            {run.name ? (
+              <div className="space-y-0.5">
+                <p className="text-sm font-semibold text-on-surface leading-snug">{run.name}</p>
+                <p className="console-label">{truncate(run.user_message, 80)}</p>
+              </div>
+            ) : (
+              <p className="text-sm font-medium text-on-surface leading-snug">
+                {truncate(run.user_message, 140)}
+              </p>
+            )}
 
             {/* Model pills */}
             <div className="flex flex-wrap gap-1.5 items-center">
@@ -103,14 +125,52 @@ export default function RunCard({ run }: RunCardProps) {
                   Best {bestScore}/5
                 </span>
               )}
+              {run.tags && run.tags.length > 0 && (
+                <div className="flex items-center gap-1 flex-wrap">
+                  {run.tags.map((tag) => (
+                    <button
+                      key={tag}
+                      onClick={() => onTagClick?.(tag)}
+                      className="console-label px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-colors"
+                    >
+                      #{tag}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
           {/* Actions */}
           <div className="flex items-center gap-2 shrink-0">
+            {confirming ? (
+              <div className="flex items-center gap-2">
+                <span className="console-label text-error">Delete?</span>
+                <button
+                  onClick={handleDelete}
+                  className="console-label px-2.5 py-1 rounded-lg bg-error/15 text-error border border-error/30 hover:bg-error/25 transition-colors"
+                >
+                  Delete
+                </button>
+                <button
+                  onClick={() => setConfirming(false)}
+                  className="console-label px-2.5 py-1 rounded-lg bg-surface-container ghost-border hover:bg-surface-container-high transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => { setDeleteError(null); setConfirming(true); }}
+                className="w-9 h-9 rounded-xl bg-surface-container ghost-border flex items-center justify-center hover:bg-error/10 hover:border-error/30 transition-colors"
+                title="Delete run"
+              >
+                <span className="material-symbols-outlined text-on-surface-variant text-[16px] hover:text-error">delete</span>
+              </button>
+            )}
             <button
               onClick={handleOpenInPlayground}
-              className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-primary-container flex items-center justify-center shadow-[0_4px_16px_rgba(160,58,15,0.25)] hover:shadow-[0_6px_20px_rgba(160,58,15,0.35)] hover:-translate-y-0.5 transition-all duration-300"
+              className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center shadow-[0_4px_16px_rgba(0,212,255,0.2)] hover:shadow-[0_6px_20px_rgba(0,212,255,0.3)] hover:-translate-y-0.5 transition-all duration-300"
               title="Open in Playground"
             >
               <span className="material-symbols-outlined text-on-primary text-[16px]">open_in_new</span>
@@ -128,6 +188,10 @@ export default function RunCard({ run }: RunCardProps) {
             </button>
           </div>
         </div>
+
+        {deleteError && (
+          <p className="mt-2 text-xs text-error font-mono">{deleteError}</p>
+        )}
       </div>
 
       {/* Expanded detail */}

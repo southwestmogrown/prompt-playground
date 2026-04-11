@@ -8,15 +8,20 @@ Built for developers and prompt engineers who are tired of switching tabs to tes
 
 ## Features
 
-- **Multi-model parallel execution** — run a prompt against any combination of supported models simultaneously, results appear as they land
-- **6 providers, 15 models** — Anthropic, OpenAI, Google Gemini, Mistral, Groq (Llama), and xAI Grok
-- **Side-by-side comparison** — latency bars, cost estimates, and per-model scoring make tradeoffs obvious at a glance
-- **Diff view** — highlight word-level differences between any two responses; select which two when running 3+ models
-- **Prompt templates** — save and reload named system prompts; edit them in place without delete/recreate
-- **Re-run from history** — any saved run can be opened in the playground with prompt and models pre-filled
-- **Save and revisit runs** — authenticated users can save scored runs to a searchable history
-- **Demo mode** — try it without signing up; 3 runs, no API key required, powered by a server-side Anthropic key
-- **Your keys, encrypted** — API keys are stored AES-256-GCM encrypted; only the last 4 characters are ever returned to the client
+- **Multi-model parallel execution** — run a prompt against any combination of supported models simultaneously
+- **6 providers, 15+ models** — Anthropic, OpenAI, Google Gemini, Mistral, Groq (Llama), and xAI Grok
+- **Model parameters** — configure temperature, top_p, and max_tokens per model independently
+- **Side-by-side comparison** — latency bars, cost estimates, and per-model scoring
+- **Diff view** — word-level diff between any two responses
+- **Prompt templates** — save and reload named prompts with system prompt, user message, and model selection
+- **Persona selector** — preset system prompt personas (helpful assistant, adversarial, formal, etc.)
+- **Injection panel** — preset prompt injection and jailbreak test strings; "Test All" runs the full suite
+- **Export as code** — generate SDK snippets for any run
+- **Run history** — save, name, and tag runs; search and filter by name, message, or tag; paginated load more
+- **Re-run from history** — any saved run restores prompt and models into the playground
+- **Delete runs** — inline confirm, optimistic removal
+- **Demo mode** — try it without signing up; 3 runs, no API key required
+- **Your keys, encrypted** — API keys stored AES-256-GCM encrypted; only the last 4 characters returned to the client
 
 ---
 
@@ -38,24 +43,17 @@ Built for developers and prompt engineers who are tired of switching tabs to tes
 
 - Node.js 20+
 - A Supabase project (free tier works)
-- At least one AI provider API key (Anthropic, OpenAI, Google, Mistral, Groq, or xAI)
+- At least one AI provider API key
 
 ### Installation
 
 ```bash
-# Clone the repo
-git clone https://github.com/your-username/prompt-playground
-cd prompt-playground
-
-# Install dependencies
+git clone https://github.com/your-username/prism
+cd prism
 npm install
-
-# Set up environment variables
 cp .env.example .env
 # Fill in your Supabase URL, anon key, service role key,
 # a 32-character ENCRYPTION_SECRET, and your DEMO_ANTHROPIC_KEY
-
-# Start the dev server
 npm run dev
 ```
 
@@ -63,13 +61,15 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ### Database Setup
 
-Run the migrations in `supabase/migrations/` in order against your Supabase project (SQL editor or `supabase db push`):
+Apply migrations in `supabase/migrations/` in order (Supabase SQL editor):
 
 | Migration | What it does |
 |---|---|
-| `20260101000000_initial_schema.sql` | Core tables: `profiles`, `api_keys`, `runs`, RLS policies, signup trigger |
-| `20260320000000_api_keys_unique_constraint.sql` | Unique constraint on `(user_id, provider)` for key upserts |
+| `20260101000000_initial_schema.sql` | Core tables: `profiles`, `api_keys`, `runs`, RLS, signup trigger |
+| `20260320000000_api_keys_unique_constraint.sql` | Unique constraint on `(user_id, provider)` |
 | `20260410000000_prompt_templates.sql` | `prompt_templates` table with RLS |
+| `20260415000000_templates_save_models.sql` | Adds `user_message` and `models[]` to templates |
+| `20260410120000_runs_name_tags.sql` | Adds `name` and `tags[]` to runs; GIN index |
 
 ### Environment Variables
 
@@ -86,9 +86,9 @@ Run the migrations in `supabase/migrations/` in order against your Supabase proj
 
 ## Usage
 
-**Demo mode** — hit the landing page and click "Try Demo." No account needed. You get 3 runs against Claude models using a shared server-side key.
+**Demo mode** — hit the landing page and click "Try Demo." No account needed. 3 runs against Claude models.
 
-**Authenticated mode** — sign up, add your provider API keys in the playground sidebar, select any combination of models, write your prompt, and run. Score each response, save the run to history, or open a past run to iterate on it.
+**Authenticated mode** — sign up, add your provider API keys in the playground sidebar, select models, write your prompt, and run. Adjust per-model parameters, score responses, diff any two, save with a name and tags, or export as code.
 
 ---
 
@@ -103,39 +103,46 @@ Run the migrations in `supabase/migrations/` in order against your Supabase proj
 | Groq | Llama 3.3 70B, Llama 3.1 8B |
 | xAI | Grok 3, Grok 3 Mini |
 
-Demo mode is limited to Anthropic models using a shared server-side key.
-
 ---
 
 ## Architecture
 
-The app has two distinct operating modes that share the same UI. Demo runs are gated server-side by IP (using `DEMO_RUN_LIMIT`) and use a shared Anthropic key — no user key required. Authenticated runs decrypt the user's stored keys at request time and execute all selected models in parallel via `Promise.all`, with per-model error isolation so one failure doesn't block the others.
-
-Route protection is handled by `src/proxy.ts` (Next.js 16's renamed middleware layer). The dashboard layout adds a secondary server-side auth check.
-
 ```
-app/
-├── page.tsx                    # Landing page
-├── (auth)/login + signup       # Unauthenticated auth pages
-├── (dashboard)/
-│   ├── playground/             # Main prompt UI (server + client components)
-│   └── history/                # Saved runs (server component)
-└── api/
-    ├── run/route.ts            # Parallel model execution
-    ├── keys/route.ts           # Encrypted key CRUD
-    └── templates/route.ts      # Prompt template CRUD
+src/
+├── app/
+│   ├── page.tsx                        # Landing page
+│   ├── (auth)/login + signup           # Auth pages
+│   ├── (dashboard)/
+│   │   ├── playground/                 # Main prompt UI
+│   │   └── history/                    # Saved runs
+│   └── api/
+│       ├── run/route.ts                # POST: parallel model execution; DELETE: remove run
+│       ├── history/route.ts            # GET: paginated run history
+│       ├── keys/route.ts               # Encrypted key CRUD
+│       └── templates/route.ts          # Prompt template CRUD
+├── components/
+│   ├── playground/                     # ResponseCard, ModelSelector, ModelParamsPanel, etc.
+│   ├── history/                        # RunCard, RunList
+│   └── shared/                        # Header, Sidebar, DemoBanner, KeyManager
+└── lib/
+    ├── providers/                      # One file per AI provider
+    ├── types.ts                        # All shared TypeScript interfaces
+    ├── models.ts                       # SUPPORTED_MODELS + DEMO_MODELS
+    ├── pricing.ts                      # Per-model cost estimates
+    ├── personas.ts                     # Preset persona data
+    └── injections.ts                   # Preset injection test data
 ```
 
 ### Adding a Provider
 
-1. Add a file `src/lib/providers/{name}.ts` — export `call{Name}(modelId, systemPrompt, userMessage, apiKey) → { response, latency_ms }`
-2. Add the provider name to `ProviderName` in `src/lib/types.ts`
-3. Add an entry to `PROVIDER_MAP` in `src/app/api/run/route.ts`
+1. `src/lib/providers/{name}.ts` — export `call{Name}(modelId, systemPrompt, userMessage, apiKey, params?: ModelParams) → { response, latency_ms }`
+2. Add to `ProviderName` union in `src/lib/types.ts`
+3. Add to `PROVIDER_MAP` in `src/app/api/run/route.ts`
 4. Add models to `SUPPORTED_MODELS` in `src/lib/models.ts`
-5. Add to the provider allowlist in `src/app/api/keys/route.ts`
-6. Add to `PROVIDER_LABELS` in `src/components/shared/KeyManager.tsx`
+5. Add to provider allowlist in `src/app/api/keys/route.ts`
+6. Add to `PROVIDER_LABELS` in `src/components/shared/KeyManager.tsx` and `src/components/playground/ModelSelector.tsx`
 
-Mistral, Groq, and xAI all use OpenAI-compatible APIs — their providers reuse the `openai` package with a custom `baseURL`. Only Google required a new SDK (`@google/generative-ai`).
+Mistral, Groq, and xAI reuse the `openai` package with a custom `baseURL`. Only Google required a new SDK.
 
 ---
 
@@ -149,11 +156,12 @@ npm run lint     # ESLint
 
 ---
 
-## Future Features
+## Roadmap
 
-**Prompt versioning** — group history runs by system prompt, show average score trends over time. MVP can be client-side grouping in `RunList` — no schema changes needed.
-
-**Team workspaces** — shared workspace with unified history and shared templates. Requires new `workspaces` + `workspace_members` tables, RLS overhaul, and workspace switcher UI.
+- **Streaming responses** — per-model token streaming so cards populate as tokens arrive instead of waiting for the slowest model
+- **Injection/red-team suite** — pass/fail detection, resistance scoring per model, red team report export
+- **Prompt versioning** — group history by system prompt, track score trends over time
+- **Team workspaces** — shared history, templates, and API keys across a team
 
 ---
 
