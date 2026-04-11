@@ -2,19 +2,20 @@
 
 > Run any prompt against multiple AI models at once, compare responses side by side, and save the runs that matter.
 
-Built for developers and prompt engineers who are tired of switching tabs to test the same prompt across GPT-4, Claude, Gemini, and whatever came out last week. Prism puts them all in one place.
+Built for developers and prompt engineers who are tired of switching tabs to test the same prompt across GPT-5.4, Claude, Gemini, and whatever came out last week. Prism puts them all in one place.
 
 ---
 
 ## Features
 
 - **Multi-model parallel execution** — run a prompt against any combination of supported models simultaneously
-- **6 providers, 15+ models** — Anthropic, OpenAI, Google Gemini, Mistral, Groq (Llama), and xAI Grok
+- **6 providers, 10 models** — Anthropic, OpenAI, Google Gemini, Mistral, Groq (Llama), and xAI Grok
+- **Live streaming** — every model streams token by token; "Fastest" badge goes to first-token arrival (TTFT), not completion time
 - **Model parameters** — configure temperature, top_p, and max_tokens per model independently
 - **Side-by-side comparison** — latency bars, cost estimates, and per-model scoring
 - **Diff view** — word-level diff between any two responses
 - **Prompt templates** — save and reload named prompts with system prompt, user message, and model selection
-- **Persona selector** — preset system prompt personas (helpful assistant, adversarial, formal, etc.)
+- **Persona selector** — 24 preset system prompt personas across 5 categories; structured preview modal lets you read and edit each section independently before applying
 - **Injection panel** — preset prompt injection and jailbreak test strings; "Test All" runs the full suite
 - **Export as code** — generate SDK snippets for any run
 - **Run history** — save, name, and tag runs; search and filter by name, message, or tag; paginated load more
@@ -94,14 +95,22 @@ Apply migrations in `supabase/migrations/` in order (Supabase SQL editor):
 
 ## Supported Models
 
-| Provider | Models |
-|---|---|
-| Anthropic | Claude Opus 4.6, Claude Sonnet 4.6, Claude Haiku 4.5 |
-| OpenAI | GPT-4.1, GPT-4o, GPT-4o Mini, o3-mini |
-| Google | Gemini 2.0 Flash, Gemini 1.5 Pro |
-| Mistral | Mistral Large, Mistral Small |
-| Groq | Llama 3.3 70B, Llama 3.1 8B |
-| xAI | Grok 3, Grok 3 Mini |
+Model IDs are the exact strings passed to each provider API. Groq's Llama 4 models use full-path IDs introduced with that generation.
+
+| Provider | Display Name | API Model ID |
+|---|---|---|
+| Anthropic | Claude Opus 4.6 | `claude-opus-4-6` |
+| Anthropic | Claude Sonnet 4.6 | `claude-sonnet-4-6` |
+| Anthropic | Claude Haiku 4.5 | `claude-haiku-4-5-20251001` |
+| OpenAI | GPT-5.4 | `gpt-5.4` |
+| OpenAI | GPT-5.4 Mini | `gpt-5.4-mini` |
+| Google | Gemini 3.1 Pro | `gemini-3.1-pro-preview` |
+| Google | Gemini 3.1 Flash Lite | `gemini-3.1-flash-lite-preview` |
+| Mistral | Mistral Small 4 | `mistral-small-4-0-26-03` |
+| Groq | Llama 4 Scout | `meta-llama/llama-4-scout-17b-16e-instruct` |
+| xAI | Grok 4.1 | `grok-4.1` |
+
+> **Note:** Model availability changes frequently. Provider APIs are updated independently of Prism releases. If a model returns a 404 or auth error, check the provider's current model list and update `src/lib/models.ts` accordingly. The Gemini 3.1 models are in preview — naming may change before GA.
 
 ---
 
@@ -121,7 +130,8 @@ src/
 │       ├── keys/route.ts               # Encrypted key CRUD
 │       └── templates/route.ts          # Prompt template CRUD
 ├── components/
-│   ├── playground/                     # ResponseCard, ModelSelector, ModelParamsPanel, etc.
+│   ├── playground/                     # ResponseCard, ModelSelector, ModelParamsPanel,
+│   │                                   # PersonaSelector, PersonaPreviewModal, etc.
 │   ├── history/                        # RunCard, RunList
 │   └── shared/                        # Header, Sidebar, DemoBanner, KeyManager
 └── lib/
@@ -129,15 +139,15 @@ src/
     ├── types.ts                        # All shared TypeScript interfaces
     ├── models.ts                       # SUPPORTED_MODELS + DEMO_MODELS
     ├── pricing.ts                      # Per-model cost estimates
-    ├── personas.ts                     # Preset persona data
+    ├── personas.ts                     # Preset persona data (24 personas, 5 categories)
     └── injections.ts                   # Preset injection test data
 ```
 
 ### Adding a Provider
 
-1. `src/lib/providers/{name}.ts` — export `call{Name}(modelId, systemPrompt, userMessage, apiKey, params?: ModelParams) → { response, latency_ms }`
+1. `src/lib/providers/{name}.ts` — export `call{Name}(modelId, systemPrompt, userMessage, apiKey, params?: ModelParams) → { response, latency_ms }` and `stream{Name}(...) → AsyncGenerator<string>`
 2. Add to `ProviderName` union in `src/lib/types.ts`
-3. Add to `PROVIDER_MAP` in `src/app/api/run/route.ts`
+3. Add to `PROVIDER_STREAM_MAP` in `src/app/api/run/route.ts`
 4. Add models to `SUPPORTED_MODELS` in `src/lib/models.ts`
 5. Add to provider allowlist in `src/app/api/keys/route.ts`
 6. Add to `PROVIDER_LABELS` in `src/components/shared/KeyManager.tsx` and `src/components/playground/ModelSelector.tsx`
@@ -158,8 +168,8 @@ npm run lint     # ESLint
 
 ## Roadmap
 
-- **Streaming responses** — per-model token streaming so cards populate as tokens arrive instead of waiting for the slowest model
 - **Injection/red-team suite** — pass/fail detection, resistance scoring per model, red team report export
+- **Model registry** — `last_verified` date and `status` (ga/preview/deprecated) per entry so stale IDs are visible at a glance; recurring maintenance chore today
 - **Prompt versioning** — group history by system prompt, track score trends over time
 - **Team workspaces** — shared history, templates, and API keys across a team
 

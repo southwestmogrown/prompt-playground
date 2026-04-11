@@ -33,7 +33,7 @@ export default function LandingPage() {
           <div className="space-y-8">
             <div className="inline-flex items-center gap-2 border border-primary/30 bg-primary/8 rounded px-3 py-1.5">
               <span className="led led-active" />
-              <span className="console-label text-primary">Now with live streaming · v1.1.0</span>
+              <span className="console-label text-primary">Live streaming · Persona studio · v1.1.2</span>
             </div>
 
             <h1 className="font-headline font-extrabold tracking-tighter leading-[0.9] text-6xl sm:text-7xl text-on-surface">
@@ -45,14 +45,14 @@ export default function LandingPage() {
 
             <p className="text-lg text-on-surface-variant leading-relaxed max-w-lg font-body">
               The multi-model prompt testing tool built for developers who care about output quality.
-              Run any prompt across 15+ models simultaneously — watch responses stream in live,
+              Run any prompt across 10 models simultaneously — watch responses stream in live,
               compare word-level diffs, score what works, and save the runs that matter.
             </p>
 
             <div className="flex flex-wrap gap-6 pt-1">
               {[
                 { label: "Providers", value: "6" },
-                { label: "Models", value: "15+" },
+                { label: "Models", value: "10" },
                 { label: "Execution", value: "Parallel" },
                 { label: "Streaming", value: "Live" },
               ].map((s) => (
@@ -100,7 +100,7 @@ export default function LandingPage() {
               </div>
               <div className="absolute -top-3 -right-3 console-panel rounded-lg px-3 py-2 flex items-center gap-2">
                 <span className="led led-green" />
-                <span className="console-label text-green">15+ models live</span>
+                <span className="console-label text-green">10 models live</span>
               </div>
               <div className="absolute -bottom-3 -left-3 console-panel rounded-lg px-3 py-2 flex items-center gap-2">
                 <span className="led led-active" />
@@ -135,7 +135,7 @@ export default function LandingPage() {
               <div className="space-y-2 pt-1">
                 {[
                   { model: "Claude", temp: "0.20", color: "bg-primary" },
-                  { model: "GPT-4o", temp: "1.00", color: "bg-[#10a37f]" },
+                  { model: "GPT-5.4", temp: "1.00", color: "bg-[#10a37f]" },
                   { model: "Gemini", temp: "0.75", color: "bg-[#4285f4]" },
                 ].map((r) => (
                   <div key={r.model} className="flex items-center gap-2">
@@ -163,7 +163,7 @@ export default function LandingPage() {
                 {[
                   { model: "Groq", ttft: "42ms", badge: true },
                   { model: "Claude", ttft: "310ms", badge: false },
-                  { model: "GPT-4o", ttft: "480ms", badge: false },
+                  { model: "GPT-5.4", ttft: "480ms", badge: false },
                 ].map((r) => (
                   <div key={r.model} className="flex items-center gap-2">
                     <span className="console-label w-12 shrink-0">{r.model}</span>
@@ -209,7 +209,7 @@ export default function LandingPage() {
               </p>
               <div className="space-y-1.5 pt-1">
                 {[
-                  { name: "Code review", models: "Claude · GPT-4o" },
+                  { name: "Code review", models: "Claude · GPT-5.4" },
                   { name: "Security audit", models: "Claude · Mistral · xAI" },
                 ].map((t) => (
                   <div key={t.name} className="flex flex-col gap-0.5 bg-surface-container rounded px-2 py-1.5">
@@ -243,9 +243,9 @@ export default function LandingPage() {
                 </div>
                 <div className="space-y-2">
                   <p className="console-label">Multi-model execution</p>
-                  <h3 className="font-headline font-bold text-xl text-on-surface">6 providers. 15+ models. One prompt.</h3>
+                  <h3 className="font-headline font-bold text-xl text-on-surface">6 providers. 10 models. One prompt.</h3>
                   <p className="text-on-surface-variant text-sm leading-relaxed">
-                    Claude, GPT-4o, Gemini, Mistral, Groq, and xAI Grok run in parallel. Responses stream in as tokens arrive — no waiting for the slowest model to finish.
+                    Claude, GPT-5.4, Gemini, Mistral, Groq, and xAI Grok run in parallel. Responses stream in as tokens arrive — no waiting for the slowest model to finish.
                   </p>
                   <div className="flex flex-wrap gap-2 pt-2">
                     {[
@@ -278,7 +278,7 @@ export default function LandingPage() {
                   {[
                     { label: "Groq", pct: 100, ms: "420ms" },
                     { label: "Claude", pct: 61, ms: "690ms" },
-                    { label: "GPT-4o", pct: 44, ms: "960ms" },
+                    { label: "GPT-5.4", pct: 44, ms: "960ms" },
                   ].map((r) => (
                     <div key={r.label} className="flex items-center gap-2">
                       <span className="console-label w-10 shrink-0 text-[10px]">{r.label}</span>
@@ -340,7 +340,7 @@ export default function LandingPage() {
                 <p className="console-label">Personas</p>
                 <h3 className="font-headline font-bold text-xl text-on-surface">Preset system prompts</h3>
                 <p className="text-on-surface-variant text-sm leading-relaxed">
-                  One-click persona presets. Adversarial tester, formal analyst, creative writer — swap context without retyping.
+                  24 preset system prompts across 5 categories. Preview and edit each persona section by section before applying — or load one directly and keep editing in the field.
                 </p>
               </div>
             </div>

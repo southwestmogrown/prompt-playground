@@ -37,8 +37,24 @@ npm run lint       # ESLint
 ### Key Library Files
 
 - `lib/types.ts` — all shared TypeScript interfaces (`Run`, `ModelResponse`, `RunRequest`, `RunResult`, `DemoSession`, `ProviderName`, `ModelParams`, etc.)
-- `lib/models.ts` — `SUPPORTED_MODELS` and `DEMO_MODELS` — single source of truth for model options
-- `lib/pricing.ts` — per-model pricing table and `estimateCost()` for client-side cost estimation
+- `lib/models.ts` — `SUPPORTED_MODELS` and `DEMO_MODELS` — single source of truth for model options. Current models (as of v1.1.2):
+
+  | Provider | Name | API Model ID |
+  |---|---|---|
+  | anthropic | Claude Opus 4.6 | `claude-opus-4-6` |
+  | anthropic | Claude Sonnet 4.6 | `claude-sonnet-4-6` |
+  | anthropic | Claude Haiku 4.5 | `claude-haiku-4-5-20251001` |
+  | openai | GPT-5.4 | `gpt-5.4` |
+  | openai | GPT-5.4 Mini | `gpt-5.4-mini` |
+  | google | Gemini 3.1 Pro | `gemini-3.1-pro-preview` *(preview — naming may change)* |
+  | google | Gemini 3.1 Flash Lite | `gemini-3.1-flash-lite-preview` *(preview)* |
+  | mistral | Mistral Small 4 | `mistral-small-4-0-26-03` *(full dated ID required — no short alias)* |
+  | groq | Llama 4 Scout | `meta-llama/llama-4-scout-17b-16e-instruct` *(full path — Llama 4 IDs differ from Llama 3 short-form IDs)* |
+  | xai | Grok 4.1 | `grok-4.1` |
+
+  `DEMO_MODELS` filters to `provider === "anthropic"` — no changes needed when updating non-Anthropic models. Model IDs go stale every few months; verify against provider docs before shipping a model update. A thin model registry with `last_verified` dates and `status` flags is planned for v1.2.0.
+
+- `lib/pricing.ts` — per-model pricing table and `estimateCost()` for client-side cost estimation. Returns `null` for models with no entry — handled gracefully in the UI (no cost shown). Gemini 3.1 preview models and Grok 4.1 are currently omitted pending published pricing.
 - `lib/diff.ts` — LCS-based `wordDiff()` utility for the diff view
 - `lib/demo.ts` — demo session logic, rate limiting, draft persistence, and restore-run storage (all sessionStorage-backed)
 - `lib/providers/` — one file per provider (anthropic, openai, google, mistral, groq, xai). Each exports two functions: `call{Name}(modelId, systemPrompt, userMessage, apiKey, params?) → { response, latency_ms }` (non-streaming, kept for future batch use) and `stream{Name}(...)  → AsyncGenerator<string>` (yields raw token strings). All six providers accept `ModelParams` (temperature, top_p, max_tokens). Dispatched via `PROVIDER_STREAM_MAP` in `api/run/route.ts`.
@@ -64,7 +80,9 @@ npm run lint       # ESLint
 - `components/playground/TemplateSelector.tsx` — save/load/edit/delete named templates; stores system_prompt, user_message, and selected_models; inline edit form
 - `components/playground/ModelSelector.tsx` — model chip selector; models without a stored API key are disabled with a lock icon and tooltip; `availableProviders` prop gates selection
 - `components/playground/ModelParamsPanel.tsx` — accordion panel for per-model inference parameters (temperature, top_p, max_tokens); renders one `ParamSlider` per param; shows a dot indicator when any param differs from default; collapses/expands via local state; renders per-model sections when multiple models selected
-- `components/playground/PersonaSelector.tsx` — accordion panel of persona presets; scrollable when open (`max-h-[280px] overflow-y-auto`)
+- `components/playground/PersonaSelector.tsx` — accordion panel of persona presets; scrollable when open (`max-h-[280px] overflow-y-auto`). Props: `systemPrompt` (current value, used to gate the replace-confirm), `onLoad` (called with the final system prompt string when a persona is applied), `systemPromptRef` (optional `RefObject<HTMLTextAreaElement | null>` — after applying a persona, `applyPersona()` calls `scrollIntoView` on this ref so the populated field is immediately visible). Each persona row has a `visibility` icon that opens `PersonaPreviewModal` without committing — the row click still works as before (inline accordion preview).
+- `components/playground/PersonaPreviewModal.tsx` — modal for structured persona preview and editing. On open, parses `persona.systemPrompt` into labeled sections (`Role`, `Output Format`, `Rules`, `Failure Handling`) by splitting on known headers (`output format:`, `output format —`, `rules:`, `failure handling:`). Everything before the first header is "Role". Each section renders as a labeled card with an editable textarea. "Use this persona" reassembles edited sections back into a single string (preserving original header lines) and calls `onUse`. Falls back to a single editable block labeled "System Prompt" when no known headers are found — never errors. Parsing and reassembly are UI-layer only; `Persona.systemPrompt` is never mutated.
+- `components/playground/PromptEditor.tsx` — dual textarea for system prompt and user message. Accepts an optional `systemPromptRef?: RefObject<HTMLTextAreaElement | null>` prop that is attached directly to the system prompt textarea — used by `PersonaSelector` to scroll the field into view after applying a persona. The textarea is only `disabled` during active streaming (`disabled={loading}`); it is freely editable at all other times.
 - `components/playground/InjectionPanel.tsx` — accordion panel of injection tests; scrollable when open; "Test All" button below scroll region
 - `components/playground/ExportModal.tsx` — modal for exporting a run as code (SDK snippets)
 - `components/playground/ScoreInput.tsx` — inline 1–5 score picker for a model response
@@ -74,6 +92,8 @@ npm run lint       # ESLint
 - `components/shared/Sidebar.tsx` — fixed left rail (`w-56`), desktop-only (`hidden lg:flex`). Shows brand block, Playground / History nav with active state (cyan bg + LED dot), and sign out at the bottom. Sits below the Header (`pt-14`).
 - `components/shared/DemoBanner.tsx` — thin strip below Header in demo mode; shows runs remaining with a LED status indicator; turns red and shows "Demo limit reached" copy when limit hit; "Sign up free" CTA calls `onSignUp` prop.
 - `components/shared/KeyManager.tsx` — add/remove encrypted API keys per provider; `onKeysChange` callback to notify parent of key mutations
+
+`PlaygroundClient.tsx` owns a `systemPromptRef = useRef<HTMLTextAreaElement>(null)` that threads through to both `PersonaSelector` (for scroll-after-apply) and `PromptEditor` (attaches to the textarea element).
 
 ### Design System
 
